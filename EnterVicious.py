@@ -74,7 +74,6 @@ def enter_vicious():
 
 def handle_chat(t,player,msg):
 	if player == Leader:
-		# Parsing message command
 		if msg == "ENTER":
 			Timer(random.uniform(1,8), enter_vicious, ()).start()
 
