@@ -42,7 +42,6 @@ def got_ticket():
 	for slot, item in enumerate(items):
 		if item:
 			name = item['name']
-			number = item['quantity']
 			# Search by servername
 			if name == r"Chamber of Vicious Shadows Entrance Ticket":
 				GotTicket = True
