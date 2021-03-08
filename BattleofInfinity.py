@@ -1,12 +1,15 @@
-﻿from phBot import *
+from phBot import *
 import QtBind
 from threading import Timer
 import struct
-
+import json
+import os
 
 name = 'Battle of Infinity'
-version = 1.0
+version = 1.1
+path = get_config_dir() + name + "\\"
 
+Online = False
 Started = False
 Registering = False
 Attacking = False
@@ -37,7 +40,7 @@ cbxChange = QtBind.createCheckBox(gui, 'cbxChange_clicked','Change to party mode
 lbl = QtBind.createLabel(gui,'Party mode profile ',430,90)
 txtPartyProfile = QtBind.createLineEdit(gui,"",520,88,90,20)
 
-cbxFinished = QtBind.createCheckBox(gui, 'cbxFinished_clicked','Return and start bot with party mode finished', 400, 110)
+cbxFinished = QtBind.createCheckBox(gui, 'cbxFinished_clicked','Return and start bot when finished', 400, 110)
 lbl = QtBind.createLabel(gui,'Training profile ',430,130)
 txtFinishedProfile = QtBind.createLineEdit(gui,"",520,128,90,20)
 
@@ -178,6 +181,8 @@ def button_start():
 	stop_bot()
 	if Started == False:
 		if OptionsSelected():
+			if Online:
+				SaveConfig()
 			Started = True
 			QtBind.setText(gui,buttonStartStop,'  Stop  ')
 			if WheresWaldo():
@@ -503,27 +508,27 @@ def ChangetoParty():
 
 
 def ReturntoTraining():
-	global Started, Registering, Attacking, WaitingforParty, Picking, PartyCount, Inside
+	global Started, Registering, Attacking, WaitingforParty, Picking, PartyCount, SoloCount, Inside
 	if QtBind.isChecked(gui,cbxFinished):
-		if PartyCount >= 2:
-			log('Plugin: Returning to training area')
-			ClearGUI('Morph',None)
-			ClearGUI('Reg',None)
-			Started = False
-			Attacking = False
-			Registering = False
-			WaitingforParty = False
-			Picking = False
-			Inside = False
-			PartyCount = 0
-			QtBind.setText(gui,buttonStartStop,'  Start  ')
-			profile = QtBind.text(gui,txtFinishedProfile)
-			if profile:
-				set_profile(profile)
-			Timer(1.0, use_return_scroll, ()).start()
-			Timer(10.0, start_bot, ()).start()
+		log('Plugin: Returning to training area')
+		ClearGUI('Morph',None)
+		ClearGUI('Reg',None)
+		Started = False
+		Attacking = False
+		Registering = False
+		WaitingforParty = False
+		Picking = False
+		Inside = False
+		PartyCount = 0
+		SoloCount = 0
+		QtBind.setText(gui,buttonStartStop,'  Start  ')
+		profile = QtBind.text(gui,txtFinishedProfile)
+		if profile:
+			set_profile(profile)
+		Timer(1.0, use_return_scroll, ()).start()
+		Timer(10.0, start_bot, ()).start()
 
-
+#conditions
 def SoloDone():
 	if SoloCount >= 2:
 		return True
@@ -556,17 +561,19 @@ def teleported():
 			else:
 				WaitingforParty = True
 				log('Plugin: Waiting for Party Member to Enter')
-				Timer(5.0, CheckforParty, ()).start()
+				Timer(8.0, CheckforParty, ()).start()
 		#failed
 		elif Attacking:
 			Inside = False
-			Timer(1.0, ReturntoTraining, ()).start()
+			if PartyCount >= 2:
+				Timer(1.0, ReturntoTraining, ()).start()
 			Attacking = False
 			Registering = True
 			QtBind.setText(gui,lblStage,'0')
 		#successful
 		elif Picking:
-			Timer(1.0, ReturntoTraining, ()).start()
+			if PartyCount >= 2:
+				Timer(1.0, ReturntoTraining, ()).start()
 			Registering = True
 			Picking = False
 			Inside = False
@@ -575,7 +582,8 @@ def teleported():
 			log('Plugin: Battle of Infinity loop finished')
 		#party didnt enter
 		elif WaitingforParty:
-			Timer(1.0, ReturntoTraining, ()).start()
+			if PartyCount >= 2:
+				Timer(1.0, ReturntoTraining, ()).start()
 			log('Plugin: Party member didnt enter in time')
 			WaitingforParty = False
 			Registering = True
@@ -620,6 +628,8 @@ def handle_joymax(opcode, data):
 				log("Plugin: You've entered too many times!")
 				if QtBind.isChecked(gui,cbxChange):
 					ChangetoParty()
+				elif QtBind.isChecked(gui,cbxFinished):
+					ReturntoTraining()
 			elif response == 40:
 				log("Plugin: The Party Master must enter first!")
 			elif response == 66:
@@ -686,12 +696,48 @@ def handle_joymax(opcode, data):
 	return True
 
 def joined_game():
+	log('called')
+	global Online
+	Online = True
 	Timer(10.0, loadDefaults, ()).start()
+
+
+def GetConfig():
+	return path + get_character_data()['server'] + "_" + get_character_data()['name'] + ".json"
+
+def SaveConfig():
+	data = {}
+	data["AttackRadius"] = int(QtBind.text(gui,txtRadius))
+	data["PartyAmount"] = int(QtBind.text(gui,txtPartyMembers))
+	data["PartyMode"] = QtBind.isChecked(gui,cbxChange)
+	data["PartyProfile"] = QtBind.text(gui,txtPartyProfile)
+	data["Finished"] = QtBind.isChecked(gui,cbxFinished)
+	data["TrainingAreaProfile"] = QtBind.text(gui,txtFinishedProfile)
+	with open(GetConfig(),"w") as f:
+		f.write(json.dumps(data, indent=4))
+	log("Plugin: configs has been saved")
+
+def LoadConfigs():
+	if os.path.exists(GetConfig()):
+		data = {}
+		with open(GetConfig(),"r") as f:
+			data = json.load(f)
+		if "AttackRadius" in data:
+			QtBind.setText(gui,txtRadius,str(data["AttackRadius"]))
+		if "PartyAmount" in data:
+			QtBind.setText(gui,txtPartyMembers,str(data["PartyAmount"]))
+		if "PartyMode" in data:
+			QtBind.setChecked(gui,cbxChange,data["PartyMode"])
+		if "PartyProfile" in data:
+			QtBind.setText(gui,txtPartyProfile,data["PartyProfile"])
+		if "Finished" in data:
+			QtBind.setChecked(gui,cbxFinished,data["Finished"])
+		if "TrainingAreaProfile" in data:
+			QtBind.setText(gui,txtFinishedProfile,data["TrainingAreaProfile"])
 
 #reloading
 def loadDefaults():
-	QtBind.setChecked(gui,cbxChange,True)
-	QtBind.setChecked(gui,cbxFinished,True)
+	LoadConfigs()
 	lvl =  get_character_data()['level']
 	if lvl >= 71 and lvl <= 80:
 		QtBind.setChecked(gui,cbxSolo71to80,True)
@@ -709,3 +755,8 @@ def loadDefaults():
 
 Timer(1.0, loadDefaults, ()).start()
 log('Plugin: [%s] Version %s Loaded' % (name,version))
+
+
+if not os.path.exists(path):
+	os.makedirs(path)
+	log('Plugin: [%s] folder has been created' % name)
