@@ -696,7 +696,6 @@ def handle_joymax(opcode, data):
 	return True
 
 def joined_game():
-	log('called')
 	global Online
 	Online = True
 	Timer(10.0, loadDefaults, ()).start()
