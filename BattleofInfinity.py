@@ -4,12 +4,13 @@ from threading import Timer
 import struct
 import json
 import os
+import urllib.request
 
 name = 'Battle of Infinity'
-version = 1.1
+version = 1.2
+NewestVersion = 0
 path = get_config_dir() + name + "\\"
 
-Online = False
 Started = False
 Registering = False
 Attacking = False
@@ -71,7 +72,6 @@ buttonStartStop = QtBind.createButton(gui, 'button_start', '  Start  ', 25, 220)
 
 RegCheckBoxes = [cbxSolo71to80,cbxPT71to80,cbxSolo81to90,cbxPT81to90,cbxSolo91to100,cbxPT91to100,cbxSolo101to110,cbxPT101to110]
 MorphCheckBoxes = [cbxYeoha,cbxSeiren,cbxNiyaShaman,cbxSlaveWatcher,cbxDemonShaitan,cbxImhotep,cbxNephthys,cbxTombSnakeLady]
-
 
 #type checkboxes
 def cbxSolo71to80_clicked(checked):
@@ -179,9 +179,11 @@ def ClearGUI(type,DontClear,DontClear2=None):
 def button_start():
 	global Started, Registering, Attacking, WaitingforParty, Picking, Inside
 	stop_bot()
+	if NewestVersion > int(str(version).replace(".","")):
+		log('Plugin: There is an update avaliable for [%s]!' % name)
 	if Started == False:
 		if OptionsSelected():
-			if Online:
+			if Online():
 				SaveConfig()
 			Started = True
 			QtBind.setText(gui,buttonStartStop,'  Stop  ')
@@ -486,6 +488,56 @@ def BOI(args):
 	return 0
 
 
+def RemoveMorph():
+	if QtBind.isChecked(gui,cbxSolo71to80):
+		if QtBind.isChecked(gui,cbxYeoha):
+			Skill = 34606
+		elif QtBind.isChecked(gui,cbxSeiren):
+			Skill = 34608
+	elif QtBind.isChecked(gui,cbxPT71to80):
+		if QtBind.isChecked(gui,cbxYeoha):
+			Skill = 34610
+		elif QtBind.isChecked(gui,cbxSeiren):
+			Skill = 34612
+
+	elif QtBind.isChecked(gui,cbxSolo81to90):
+		if QtBind.isChecked(gui,cbxNiyaShaman):
+			Skill = 34607
+		elif QtBind.isChecked(gui,cbxSlaveWatcher):
+			Skill = 34609
+	elif QtBind.isChecked(gui,cbxPT81to90):
+		if QtBind.isChecked(gui,cbxNiyaShaman):
+			Skill = 34611
+		elif QtBind.isChecked(gui,cbxSlaveWatcher):
+			Skill = 34613
+
+	elif QtBind.isChecked(gui,cbxSolo91to100):
+		if QtBind.isChecked(gui,cbxDemonShaitan):
+			Skill = 34614
+		elif QtBind.isChecked(gui,cbxImhotep):
+			Skill = 34616
+	elif QtBind.isChecked(gui,cbxPT91to100):
+		if QtBind.isChecked(gui,cbxDemonShaitan):
+			Skill = 34618
+		elif QtBind.isChecked(gui,cbxImhotep):
+			Skill = 34620
+
+	elif QtBind.isChecked(gui,cbxSolo101to110):
+		if QtBind.isChecked(gui,cbxNephthys):
+			Skill = 34615
+		elif QtBind.isChecked(gui,cbxTombSnakeLady):
+			Skill = 34617
+	elif QtBind.isChecked(gui,cbxPT101to110):
+		if QtBind.isChecked(gui,cbxNephthys):
+			Skill = 34619
+		elif QtBind.isChecked(gui,cbxTombSnakeLady):
+			Skill = 34621
+	packet = b'\x01\x05'
+	packet += struct.pack('<I', Skill)
+	packet += b'\x00'
+	inject_joymax(0x7074,packet,False)
+
+
 def ChangetoParty():
 	ClearGUI('Morph',None)
 	ClearGUI('Reg',None)
@@ -566,14 +618,14 @@ def teleported():
 		elif Attacking:
 			Inside = False
 			if PartyCount >= 2:
-				Timer(1.0, ReturntoTraining, ()).start()
+				Timer(0.1, ReturntoTraining, ()).start()
 			Attacking = False
 			Registering = True
 			QtBind.setText(gui,lblStage,'0')
 		#successful
 		elif Picking:
 			if PartyCount >= 2:
-				Timer(1.0, ReturntoTraining, ()).start()
+				Timer(0.1, ReturntoTraining, ()).start()
 			Registering = True
 			Picking = False
 			Inside = False
@@ -583,7 +635,7 @@ def teleported():
 		#party didnt enter
 		elif WaitingforParty:
 			if PartyCount >= 2:
-				Timer(1.0, ReturntoTraining, ()).start()
+				Timer(0.1, ReturntoTraining, ()).start()
 			log('Plugin: Party member didnt enter in time')
 			WaitingforParty = False
 			Registering = True
@@ -660,7 +712,6 @@ def handle_joymax(opcode, data):
 			Timer(3.0, ChangetoMob, ()).start()	
 	#died
 	elif opcode == 0x3011 and Attacking:
-		#check packet
 		p = b'\x81' 
 		inject_joymax(0x3053,p,True)
 		Attacking = False
@@ -677,7 +728,9 @@ def handle_joymax(opcode, data):
 				QtBind.setText(gui,lblStage,'Finished')
 				Attacking = False
 				Picking = True
+				RemoveMorph()
 				MovetoPick()
+				
 	#skill logging
 	elif opcode == 0xB070 and Attacking:
 		if data[1] == 2:
@@ -695,9 +748,14 @@ def handle_joymax(opcode, data):
 
 	return True
 
+
+def Online():
+	if get_character_data()['player_id'] > 0:
+		return True
+	else:
+		return False
+
 def joined_game():
-	global Online
-	Online = True
 	Timer(10.0, loadDefaults, ()).start()
 
 
@@ -752,6 +810,25 @@ def loadDefaults():
 		QtBind.setChecked(gui,cbxNephthys,True)
 
 
+
+def CheckForUpdate():
+	global NewestVersion
+	#avoid request spam
+	if NewestVersion == 0:
+		try:
+			req = urllib.request.Request('https://raw.githubusercontent.com/Bunker141/Phbot-Plugins/master/BattleofInfinity.py', headers={'User-Agent': 'Mozilla/5.0'})
+			with urllib.request.urlopen(req) as f:
+				lines = str(f.read().decode("utf-8")).split()
+				for num, line in enumerate(lines):
+					if line == 'version':
+						NewestVersion = int(lines[num+2].replace(".",""))
+						CurrentVersion = int(str(version).replace(".",""))
+						if NewestVersion > CurrentVersion:
+							log('Plugin: There is an update avaliable for [%s]!' % name)
+		except:
+			pass
+
+
 Timer(1.0, loadDefaults, ()).start()
 log('Plugin: [%s] Version %s Loaded' % (name,version))
 
@@ -759,3 +836,6 @@ log('Plugin: [%s] Version %s Loaded' % (name,version))
 if not os.path.exists(path):
 	os.makedirs(path)
 	log('Plugin: [%s] folder has been created' % name)
+
+
+CheckForUpdate()
