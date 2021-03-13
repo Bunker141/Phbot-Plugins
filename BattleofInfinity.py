@@ -73,6 +73,7 @@ buttonStartStop = QtBind.createButton(gui, 'button_start', '  Start  ', 25, 220)
 RegCheckBoxes = [cbxSolo71to80,cbxPT71to80,cbxSolo81to90,cbxPT81to90,cbxSolo91to100,cbxPT91to100,cbxSolo101to110,cbxPT101to110]
 MorphCheckBoxes = [cbxYeoha,cbxSeiren,cbxNiyaShaman,cbxSlaveWatcher,cbxDemonShaitan,cbxImhotep,cbxNephthys,cbxTombSnakeLady]
 
+
 #type checkboxes
 def cbxSolo71to80_clicked(checked):
 	if checked:
@@ -263,6 +264,10 @@ def ChangetoMob():
 def StartAttack():
 	global Attacking
 	Attacking = True
+
+def StartReg():
+	global Registering
+	Registering = True
 
 def SetSkills():
 	global CastSkills
@@ -579,13 +584,13 @@ def teleported():
 			if PartyCount >= 2:
 				Timer(0.1, ReturntoTraining, ()).start()
 			Attacking = False
-			Registering = True
+			Timer(5.0, StartReg, ()).start()
 			QtBind.setText(gui,lblStage,'0')
 		#successful
 		elif Picking:
 			if PartyCount >= 2:
 				Timer(0.1, ReturntoTraining, ()).start()
-			Registering = True
+			Timer(5.0, StartReg, ()).start()
 			Picking = False
 			Inside = False
 			stop_bot()
@@ -597,7 +602,7 @@ def teleported():
 				Timer(0.1, ReturntoTraining, ()).start()
 			log('Plugin: Party member didnt enter in time')
 			WaitingforParty = False
-			Registering = True
+			Timer(5.0, StartReg, ()).start()
 			Inside = False
 			QtBind.setText(gui,lblStage,'0')
 
