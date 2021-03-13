@@ -487,56 +487,15 @@ def BOI(args):
 	Timer(1.0, button_start, ()).start()
 	return 0
 
-
 def RemoveMorph():
-	if QtBind.isChecked(gui,cbxSolo71to80):
-		if QtBind.isChecked(gui,cbxYeoha):
-			Skill = 34606
-		elif QtBind.isChecked(gui,cbxSeiren):
-			Skill = 34608
-	elif QtBind.isChecked(gui,cbxPT71to80):
-		if QtBind.isChecked(gui,cbxYeoha):
-			Skill = 34610
-		elif QtBind.isChecked(gui,cbxSeiren):
-			Skill = 34612
-
-	elif QtBind.isChecked(gui,cbxSolo81to90):
-		if QtBind.isChecked(gui,cbxNiyaShaman):
-			Skill = 34607
-		elif QtBind.isChecked(gui,cbxSlaveWatcher):
-			Skill = 34609
-	elif QtBind.isChecked(gui,cbxPT81to90):
-		if QtBind.isChecked(gui,cbxNiyaShaman):
-			Skill = 34611
-		elif QtBind.isChecked(gui,cbxSlaveWatcher):
-			Skill = 34613
-
-	elif QtBind.isChecked(gui,cbxSolo91to100):
-		if QtBind.isChecked(gui,cbxDemonShaitan):
-			Skill = 34614
-		elif QtBind.isChecked(gui,cbxImhotep):
-			Skill = 34616
-	elif QtBind.isChecked(gui,cbxPT91to100):
-		if QtBind.isChecked(gui,cbxDemonShaitan):
-			Skill = 34618
-		elif QtBind.isChecked(gui,cbxImhotep):
-			Skill = 34620
-
-	elif QtBind.isChecked(gui,cbxSolo101to110):
-		if QtBind.isChecked(gui,cbxNephthys):
-			Skill = 34615
-		elif QtBind.isChecked(gui,cbxTombSnakeLady):
-			Skill = 34617
-	elif QtBind.isChecked(gui,cbxPT101to110):
-		if QtBind.isChecked(gui,cbxNephthys):
-			Skill = 34619
-		elif QtBind.isChecked(gui,cbxTombSnakeLady):
-			Skill = 34621
-	packet = b'\x01\x05'
-	packet += struct.pack('<I', Skill)
-	packet += b'\x00'
-	inject_joymax(0x7074,packet,False)
-
+	skills = get_active_skills()
+	for ID, skill in skills.items():
+		if skill['servername'].startswith('SKILL_MUHAN'):
+			packet = b'\x01\x05'
+			packet += struct.pack('<I', ID)
+			packet += b'\x00'
+			inject_joymax(0x7074,packet,False)
+			
 
 def ChangetoParty():
 	ClearGUI('Morph',None)
