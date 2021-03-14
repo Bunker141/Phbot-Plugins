@@ -5,9 +5,11 @@ import struct
 import json
 import os
 import urllib.request
+import random
+from operator import add, sub
 
 name = 'Battle of Infinity'
-version = 1.2
+version = 1.3
 NewestVersion = 0
 path = get_config_dir() + name + "\\"
 
@@ -19,7 +21,9 @@ WaitingforParty = False
 Inside = False
 SkillDelay = 500
 RegDelay = 4000
-DelayCounter = 0 
+DelayCounter = 0
+ChangeAreaAttempts = 0
+MoveAttempts = 0
 
 SoloCount = 0
 PartyCount = 0
@@ -44,6 +48,7 @@ txtPartyProfile = QtBind.createLineEdit(gui,"",520,88,90,20)
 cbxFinished = QtBind.createCheckBox(gui, 'cbxFinished_clicked','Return and start bot when finished', 400, 110)
 lbl = QtBind.createLabel(gui,'Training profile ',430,130)
 txtFinishedProfile = QtBind.createLineEdit(gui,"",520,128,90,20)
+cbxTerminate = QtBind.createCheckBox(gui, 'cbxTerminate_clicked','Terminate Bot when finished', 400, 150)
 
 lbl = QtBind.createLabel(gui,'Current Stage: ',10,250)
 lblStage = QtBind.createLabel(gui,'0',85,250)
@@ -72,7 +77,6 @@ buttonStartStop = QtBind.createButton(gui, 'button_start', '  Start  ', 25, 220)
 
 RegCheckBoxes = [cbxSolo71to80,cbxPT71to80,cbxSolo81to90,cbxPT81to90,cbxSolo91to100,cbxPT91to100,cbxSolo101to110,cbxPT101to110]
 MorphCheckBoxes = [cbxYeoha,cbxSeiren,cbxNiyaShaman,cbxSlaveWatcher,cbxDemonShaitan,cbxImhotep,cbxNephthys,cbxTombSnakeLady]
-
 
 #type checkboxes
 def cbxSolo71to80_clicked(checked):
@@ -166,6 +170,13 @@ def cbxTombSnakeLady_clicked(checked):
 		log('Plugin: Wrong Selection!')
 		QtBind.setChecked(gui,cbxTombSnakeLady,False)
 
+def cbxTerminate_clicked(checked):
+	if checked:
+		QtBind.setChecked(gui,cbxFinished,False)
+
+def cbxFinished_clicked(checked):
+	if checked:
+		QtBind.setChecked(gui,cbxTerminate,False)
 
 def ClearGUI(type,DontClear,DontClear2=None):
 	if type == 'Reg':
@@ -365,6 +376,7 @@ def SelectMob(targetID):
 
 
 def GetMobID():
+	global MoveAttempts
 	AttackRadius = int(QtBind.text(gui,txtRadius))
 	Mobs = get_monsters()
 	if Mobs:
@@ -375,9 +387,24 @@ def GetMobID():
 			else:
 				return 0
 	elif not AtAttackArea():
-		#move back to center..lazy
-		move_to(14737.0, 2593.0, 0.0)
+		#move back to center
+		if MoveAttempts <= 5:
+			MoveAttempts += 1
+			move_to(14737.0, 2593.0, 0.0)
+		else:
+			MovetoRandomPoint()
 		return 0
+
+def MovetoRandomPoint():
+	global MoveAttempts
+	number = random.randint(1,10)
+	ops = (add, sub)
+	operator = random.choice(ops)
+	X = operator(get_character_data()['x'], number)
+	operator = random.choice(ops)
+	Y = operator(get_character_data()['y'], number)
+	move_to(X, Y, 0.0)
+	MoveAttempts = 0
 
 
 def AtAttackArea():
@@ -390,12 +417,28 @@ def AtAttackArea():
 	else:
 		return False
 
-
 def MovetoPick():
 	move_to(14762.0, 2592.0, 0.0)
+	move_to(14762.0, 2592.0, 0.0)
 	set_training_position(0, 14762.0, 2592.0, 0)
-	start_bot()
+	Timer(2.0, ConfirmAreaChanged,()).start()
 
+def ConfirmAreaChanged():
+	global ChangeAreaAttempts
+	Setx = get_training_position()['x']
+	Sety = get_training_position()['y']
+	if Setx == 14762.0 and Sety == 2592.0:
+		start_bot()
+		ChangeAreaAttempts = 0
+		return True
+	elif ChangeAreaAttempts < 5:
+		log('Plugin: Training Area Failed to move.. Retrying')
+		ChangeAreaAttempts += 1
+		MovetoPick()
+		return
+	log('Plugin: Failed to move training area')
+	ChangeAreaAttempts = 0
+	start_bot()
 
 
 def CalcRadiusFromME(Px,Py):
@@ -429,7 +472,6 @@ def CheckforParty():
 			for key, player in party.items():
 				if player['player_id'] > 0:
 					MembersInside += 1
-					#log('%s' %MembersInside)
 					if MembersInside >= WaitFor:
 						log('Plugin: All party members have entered.. beginning battle')
 						WaitingforParty = False
@@ -576,7 +618,7 @@ def teleported():
 				Timer(5.0, BeginBattle, ()).start()
 			else:
 				WaitingforParty = True
-				log('Plugin: Waiting for Party Member to Enter')
+				log('Plugin: Waiting for Party Members to Enter')
 				Timer(8.0, CheckforParty, ()).start()
 		#failed
 		elif Attacking:
@@ -646,6 +688,8 @@ def handle_joymax(opcode, data):
 					ChangetoParty()
 				elif QtBind.isChecked(gui,cbxFinished):
 					ReturntoTraining()
+				elif QtBind.isChecked(gui,cbxTerminate):
+					Terminate()
 			elif response == 40:
 				log("Plugin: The Party Master must enter first!")
 			elif response == 66:
@@ -734,6 +778,7 @@ def SaveConfig():
 	data["PartyProfile"] = QtBind.text(gui,txtPartyProfile)
 	data["Finished"] = QtBind.isChecked(gui,cbxFinished)
 	data["TrainingAreaProfile"] = QtBind.text(gui,txtFinishedProfile)
+	data["Terminate"] = QtBind.isChecked(gui,cbxTerminate)
 	with open(GetConfig(),"w") as f:
 		f.write(json.dumps(data, indent=4))
 	log("Plugin: configs has been saved")
@@ -755,6 +800,8 @@ def LoadConfigs():
 			QtBind.setChecked(gui,cbxFinished,data["Finished"])
 		if "TrainingAreaProfile" in data:
 			QtBind.setText(gui,txtFinishedProfile,data["TrainingAreaProfile"])
+		if "Terminate" in data:
+			QtBind.setChecked(gui,cbxTerminate,data["Terminate"])
 
 #reloading
 def loadDefaults():
@@ -791,6 +838,9 @@ def CheckForUpdate():
 							log('Plugin: There is an update avaliable for [%s]!' % name)
 		except:
 			pass
+
+def Terminate():
+	os.kill(os.getpid(),9)
 
 
 Timer(1.0, loadDefaults, ()).start()
