@@ -1,3 +1,5 @@
+#reduced CPU usage slightly
+
 from phBot import *
 import QtBind
 from threading import Timer
@@ -9,7 +11,7 @@ import random
 from operator import add, sub
 
 name = 'Battle of Infinity'
-version = 1.3
+version = 1.4
 NewestVersion = 0
 path = get_config_dir() + name + "\\"
 
@@ -361,14 +363,18 @@ def RemoveSkill(SkillID):
 
 def UseSkill():
 	global ActiveSkills, SkillDelay
-	MobID = GetMobID()
 	if Started:
+		SkillDelay = 500
 		for skill in CastSkills:
 			if skill not in ActiveSkills:
-				AttackMob(skill,MobID)
-				#for your viewing pleasure
-				SelectMob(MobID)
-				return
+				MobID = GetMobID()
+				if MobID > 0:
+					AttackMob(skill,MobID)
+					#skill cooldown minus alittle
+					SkillDelay = 3000
+					#for your viewing pleasure
+					SelectMob(MobID)
+					return
 
 def SelectMob(targetID):
 	packet = struct.pack('<I',targetID)
