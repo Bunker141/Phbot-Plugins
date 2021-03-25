@@ -286,47 +286,47 @@ def SetSkills():
 	global CastSkills
 	if QtBind.isChecked(gui,cbxSolo71to80):
 		if QtBind.isChecked(gui,cbxYeoha):
-			CastSkills = [34574,34575]
+			CastSkills = [34575,34574]
 		elif QtBind.isChecked(gui,cbxSeiren):
-			CastSkills = [34576,34577]
+			CastSkills = [34577,34576]
 	elif QtBind.isChecked(gui,cbxPT71to80):
 		if QtBind.isChecked(gui,cbxYeoha):
-			CastSkills = [34582,34583]
+			CastSkills = [34583,34582]
 		elif QtBind.isChecked(gui,cbxSeiren):
-			CastSkills = [34584,34585]
+			CastSkills = [34585,34584]
 
 	elif QtBind.isChecked(gui,cbxSolo81to90):
 		if QtBind.isChecked(gui,cbxNiyaShaman):
-			CastSkills = [34578,34579]
+			CastSkills = [34579,34578]
 		elif QtBind.isChecked(gui,cbxSlaveWatcher):
-			CastSkills = [34580,34581]
+			CastSkills = [34581,34580]
 	elif QtBind.isChecked(gui,cbxPT81to90):
 		if QtBind.isChecked(gui,cbxNiyaShaman):
-			CastSkills = [34586,34587]
+			CastSkills = [34587,34586]
 		elif QtBind.isChecked(gui,cbxSlaveWatcher):
-			CastSkills = [34588,34589]
+			CastSkills = [34589,34588]
 
 	elif QtBind.isChecked(gui,cbxSolo91to100):
 		if QtBind.isChecked(gui,cbxDemonShaitan):
-			CastSkills = [34590,34591]
+			CastSkills = [34591,34590]
 		elif QtBind.isChecked(gui,cbxImhotep):
-			CastSkills = [34592,34593]
+			CastSkills = [34593,34592]
 	elif QtBind.isChecked(gui,cbxPT91to100):
 		if QtBind.isChecked(gui,cbxDemonShaitan):
-			CastSkills = [34598,34599]
+			CastSkills = [34599,34598]
 		elif QtBind.isChecked(gui,cbxImhotep):
-			CastSkills = [34600,34601]
+			CastSkills = [34601,34600]
 
 	elif QtBind.isChecked(gui,cbxSolo101to110):
 		if QtBind.isChecked(gui,cbxNephthys):
-			CastSkills = [34594,34595]
+			CastSkills = [34595,34594]
 		elif QtBind.isChecked(gui,cbxTombSnakeLady):
-			CastSkills = [34596,34597]
+			CastSkills = [34597,34596]
 	elif QtBind.isChecked(gui,cbxPT101to110):
 		if QtBind.isChecked(gui,cbxNephthys):
-			CastSkills = [34602,34603]
+			CastSkills = [34603,34602]
 		elif QtBind.isChecked(gui,cbxTombSnakeLady):
-			CastSkills = [34604,34605]
+			CastSkills = [34605,34604]
 
 def GetBOIType():
 	if QtBind.isChecked(gui,cbxSolo71to80):
