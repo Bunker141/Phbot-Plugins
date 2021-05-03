@@ -690,9 +690,9 @@ def handle_joymax(opcode, data):
 				log('Plugin: You are not the required level to enter!')
 			elif response == 39:
 				log("Plugin: You've entered too many times!")
-				if QtBind.isChecked(gui,cbxChange):
+				if QtBind.isChecked(gui,cbxChange) and QtBind.isChecked(gui,cbxSolo71to80) or QtBind.isChecked(gui,cbxSolo81to90) or QtBind.isChecked(gui,cbxSolo91to100) or QtBind.isChecked(gui,cbxSolo101to110):
 					ChangetoParty()
-				elif QtBind.isChecked(gui,cbxFinished):
+				elif QtBind.isChecked(gui,cbxFinished) and QtBind.isChecked(gui,cbxPT71to80) or QtBind.isChecked(gui,cbxPT81to90)  or QtBind.isChecked(gui,cbxPT91to100) or QtBind.isChecked(gui,cbxPT101to110):
 					ReturntoTraining()
 				elif QtBind.isChecked(gui,cbxTerminate):
 					Terminate()
