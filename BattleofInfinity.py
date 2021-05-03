@@ -698,6 +698,8 @@ def handle_joymax(opcode, data):
 					Terminate()
 			elif response == 40:
 				log("Plugin: The Party Master must enter first!")
+					if PartyCount >= 2:
+						ReturntoTraining()
 			elif response == 66:
 				log("Plugin: You cannot be in a party to enter solo")
 				if QtBind.isChecked(gui,cbxSolo71to80) or QtBind.isChecked(gui,cbxSolo81to90) or QtBind.isChecked(gui,cbxSolo91to100) or QtBind.isChecked(gui,cbxSolo101to110):
