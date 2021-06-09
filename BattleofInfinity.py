@@ -1,5 +1,3 @@
-#reduced CPU usage slightly
-
 from phBot import *
 import QtBind
 from threading import Timer
@@ -11,7 +9,7 @@ import random
 from operator import add, sub
 
 name = 'Battle of Infinity'
-version = 1.4
+version = 1.5
 NewestVersion = 0
 path = get_config_dir() + name + "\\"
 
@@ -26,6 +24,7 @@ RegDelay = 4000
 DelayCounter = 0
 ChangeAreaAttempts = 0
 MoveAttempts = 0
+GettingMorph = False
 
 SoloCount = 0
 PartyCount = 0
@@ -246,7 +245,8 @@ def BeginBattle():
 
 def ChangetoMob():
 	SetSkills()
-	global Attacking
+	global Attacking, GettingMorph
+	GettingMorph = True
 	if QtBind.isChecked(gui,cbxYeoha):
 		type = "Yeoha Morphstone"
 	elif QtBind.isChecked(gui,cbxSeiren):
@@ -678,7 +678,7 @@ def event_loop():
 
 
 def handle_joymax(opcode, data):
-	global Attacking, Picking
+	global Attacking, Picking, GettingMorph
 	if opcode == 0xB05A and Registering:
 		if data[0] == 2 and data[2] == 28:
 			response = data[1]
@@ -711,12 +711,14 @@ def handle_joymax(opcode, data):
 	#Skill added...maybe not perfect
 	elif opcode == 0xB0BD and Inside and not Picking:
 		global MorphID
-		SelfID = get_character_data()['player_id']
-		packetIndex = 0
-		PlayerID  = struct.unpack_from("<I",data,packetIndex)[0]
-		if SelfID == PlayerID:
-			packetIndex = 8
-			MorphID = struct.unpack_from("<I",data,packetIndex)[0]
+		if GettingMorph:
+			SelfID = get_character_data()['player_id']
+			packetIndex = 0
+			PlayerID  = struct.unpack_from("<I",data,packetIndex)[0]
+			if SelfID == PlayerID:
+				packetIndex = 8
+				MorphID = struct.unpack_from("<I",data,packetIndex)[0]
+				GettingMorph = False
 	#Skill removed
 	elif opcode == 0xB072 and Inside and not Picking:
 		packetIndex = 1
