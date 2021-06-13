@@ -246,7 +246,6 @@ def BeginBattle():
 def ChangetoMob():
 	SetSkills()
 	global Attacking, GettingMorph
-	GettingMorph = True
 	if QtBind.isChecked(gui,cbxYeoha):
 		type = "Yeoha Morphstone"
 	elif QtBind.isChecked(gui,cbxSeiren):
@@ -266,6 +265,7 @@ def ChangetoMob():
 	npcs = get_npcs()
 	for key, npc in npcs.items():
 		if npc['name'] == type:
+			GettingMorph = True
 			packet = b'\x03'
 			packet += struct.pack('<I', key)
 			inject_joymax(0x7588,packet,False)
@@ -690,7 +690,10 @@ def handle_joymax(opcode, data):
 				log('Plugin: You are not the required level to enter!')
 			elif response == 39:
 				log("Plugin: You've entered too many times!")
-				if QtBind.isChecked(gui,cbxChange) and QtBind.isChecked(gui,cbxSolo71to80) or QtBind.isChecked(gui,cbxSolo81to90) or QtBind.isChecked(gui,cbxSolo91to100) or QtBind.isChecked(gui,cbxSolo101to110):
+				#for solo only
+				if not QtBind.isChecked(gui,cbxChange) and QtBind.isChecked(gui,cbxFinished):
+					ReturntoTraining()
+				elif QtBind.isChecked(gui,cbxChange) and QtBind.isChecked(gui,cbxSolo71to80) or QtBind.isChecked(gui,cbxSolo81to90) or QtBind.isChecked(gui,cbxSolo91to100) or QtBind.isChecked(gui,cbxSolo101to110):
 					ChangetoParty()
 				elif QtBind.isChecked(gui,cbxFinished) and QtBind.isChecked(gui,cbxPT71to80) or QtBind.isChecked(gui,cbxPT81to90)  or QtBind.isChecked(gui,cbxPT91to100) or QtBind.isChecked(gui,cbxPT101to110):
 					ReturntoTraining()
