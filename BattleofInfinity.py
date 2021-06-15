@@ -614,7 +614,7 @@ def teleported():
 			if QtBind.isChecked(gui,cbxSolo71to80) or QtBind.isChecked(gui,cbxSolo81to90) or QtBind.isChecked(gui,cbxSolo91to100) or QtBind.isChecked(gui,cbxSolo101to110):
 				SoloCount += 1
 				PartyCount = 0
-			if QtBind.isChecked(gui,cbxPT71to80) or QtBind.isChecked(gui,cbxPT81to90)  or QtBind.isChecked(gui,cbxPT91to100) or QtBind.isChecked(gui,cbxPT101to110):
+			if QtBind.isChecked(gui,cbxPT71to80) or QtBind.isChecked(gui,cbxPT81to90) or QtBind.isChecked(gui,cbxPT91to100) or QtBind.isChecked(gui,cbxPT101to110):
 				PartyCount += 1
 				SoloCount = 0
 			Registering = False
@@ -702,7 +702,10 @@ def handle_joymax(opcode, data):
 			elif response == 40:
 				log("Plugin: The Party Master must enter first!")
 				if PartyCount >= 2:
-					ReturntoTraining()
+					if QtBind.isChecked(gui,cbxTerminate):
+						Terminate()
+					elif QtBind.isChecked(gui,cbxFinished):
+						ReturntoTraining()
 			elif response == 66:
 				log("Plugin: You cannot be in a party to enter solo")
 				if QtBind.isChecked(gui,cbxSolo71to80) or QtBind.isChecked(gui,cbxSolo81to90) or QtBind.isChecked(gui,cbxSolo91to100) or QtBind.isChecked(gui,cbxSolo101to110):
