@@ -7,9 +7,11 @@ import os
 import signal
 import struct
 import subprocess
+import json
+import QtBind
 
 name = 'ScriptCommands'
-version = 1.0
+version = 1.1
 NewestVersion = 0
 
 
@@ -22,7 +24,21 @@ CheckStartTime = False
 CheckCloseTime = False
 SkipCommand = False
 delay_counter = 0
+BtnStart = False
+Recording = False
+RecordedPackets = []
+ExecutedPackets = []
+Index = 0
 
+gui = QtBind.init(__name__, name)
+LvlSaveName = QtBind.createLabel(gui,'Save Name ',10,13)
+SaveName = QtBind.createLineEdit(gui,"",80,10,120,20)
+RecordBtn = QtBind.createButton(gui, 'button_start', ' Start Recording ', 220, 10)
+Display = QtBind.createList(gui,20,50,280,180)
+ShowCommandsBtn = QtBind.createButton(gui, 'button_ShowCmds', ' Show Current \n Saved Cmds ', 20, 240)
+DeleteCommandsBtn = QtBind.createButton(gui, 'button_DelCmds', ' Delete Cmd ', 120, 240)
+ShowPacketsBtn = QtBind.createButton(gui, 'button_ShowPackets', ' Show Packets ', 220, 240)
+cbxShowPackets = QtBind.createCheckBox(gui, 'cbxAuto_clicked','Show Packets ', 330, 10)
 
 def LeaveParty(args):
 	if get_party():
@@ -215,6 +231,154 @@ def event_loop():
 				CheckCloseTime = False
 				Terminate()
 
+#-----------------Custom Script Command Stuffs-----------------
+
+def button_start():
+	global BtnStart, RecordedPackets
+	if len(QtBind.text(gui,SaveName)) <= 0:
+		log('Plugin: Please Enter a Name for the Custom Scipt Command')
+		return
+	if BtnStart == False:
+		BtnStart = True
+		QtBind.setText(gui,RecordBtn,' Stop Recording ')
+		log('Plugin: Started, Please Select the NPC to start recording')
+
+	elif BtnStart == True:	
+		log('Plugin: Recording Finished')
+		Name = QtBind.text(gui,SaveName)
+		SaveNPCPackets(Name,RecordedPackets)
+		BtnStart = False
+		QtBind.setText(gui,RecordBtn,' Start Recording ')
+		Recording = False
+		RecordedPackets = []
+		Timer(1.0, button_ShowCmds, ()).start()
+
+def button_ShowCmds():
+	QtBind.clear(gui,Display)
+	data = {}
+	if os.path.exists(path + "CustomNPC.json"):
+		with open("CustomNPC.json","r") as f:
+			data = json.load(f)
+			for name in data:
+				QtBind.append(gui,Display,name)
+	else:
+		log('Plugin: No Commands Currently Saved')
+
+def button_DelCmds():
+	Name = QtBind.text(gui,Display)
+	QtBind.clear(gui,Display)
+	data = {}
+	if Name:
+		with open("CustomNPC.json","r") as f:
+			data = json.load(f)
+			for name, value in list(data.items()):
+				if name == Name:
+					del data[name]
+					with open("CustomNPC.json","w") as f:
+						f.write(json.dumps(data, indent=4))
+						log('Plugin: Custom NPC Command [%s] Deleted' %name)
+						Timer(1.0, button_ShowCmds, ()).start()
+						return
+			else:
+				log('Plugin: Custom NPC Command [%s] does not exist' %Name)
+				Timer(1.0, button_ShowCmds, ()).start()
+
+
+def button_ShowPackets():
+	Name = QtBind.text(gui,Display)
+	QtBind.clear(gui,Display)
+	data = {}
+	if Name:
+		with open("CustomNPC.json","r") as f:
+			data = json.load(f)
+			for name in data:
+				if name == Name:
+					Packets = data[name]['Packets']
+					for packet in Packets:
+						QtBind.append(gui,Display,packet)
+
+
+def GetPackets(Name):
+	global ExecutedPackets
+	data = {}
+	with open("CustomNPC.json","r") as f:
+		data = json.load(f)
+		for name in data:
+			if name == Name:
+				ExecutedPackets = data[name]['Packets']
+
+
+def SaveNPCPackets(Name,Packets=[]):
+	data = {}
+	if os.path.exists(path + "CustomNPC.json"):
+		with open("CustomNPC.json","r") as f:
+			data = json.load(f)
+	else:
+		data = {}
+	data[Name] = {"Packets": Packets}
+	with open("CustomNPC.json","w") as f:
+		f.write(json.dumps(data, indent=4))
+	log("Plugin: Custom NPC Command Saved")
+
+
+def CustomNPC(args):
+	global SkipCommand
+	if SkipCommand:
+		SkipCommand = False
+		return 0
+	stop_bot()
+	Name = args[1]
+	GetPackets(Name)
+	#avoid the bot closing the npc window
+	Timer(0.5, InjectPackets, ()).start()
+	return 0
+
+def InjectPackets():
+	global Index, ExecutedPackets
+	opcode = int(ExecutedPackets[Index].split(':')[0],16)
+	dataStr = ExecutedPackets[Index].split(':')[1].replace(' ','')
+	LendataStr = len(dataStr)
+	data = bytearray()
+	for i in range(0,int(LendataStr),2):
+			data.append(int(dataStr[i:i+2],16))
+	inject_joymax(opcode, data, False)
+	if QtBind.isChecked(gui,cbxShowPackets):
+		log("Plugin: Injected (Opcode) 0x" + '{:02X}'.format(opcode) + " (Data) "+ ("None" if not data else ' '.join('{:02X}'.format(x) for x in data)))
+	NumofPackets = len(ExecutedPackets) - 1
+	if Index < NumofPackets:
+		Index += 1
+		Timer(2.0, InjectPackets, ()).start()
+
+	elif Index == NumofPackets:
+		global SkipCommand
+		log('Plugin: Finished Custom NPC Command')
+		Index = 0
+		ExecutedPackets = []
+		SkipCommand = True
+		start_bot()
+
+
+def handle_silkroad(opcode, data):
+	global Recording, BtnStart, RecordedPackets
+	if data == None:
+		return True
+	if BtnStart:
+		#select NPC to start recording
+		if opcode == 0x7045:
+			Recording = True
+			log('Plugin: Recording Started')
+			RecordedPackets.append("0x" + '{:02X}'.format(opcode) + ":" + ' '.join('{:02X}'.format(x) for x in data))
+			if QtBind.isChecked(gui,cbxShowPackets):
+				log("Plugin: Recorded (Opcode) 0x" + '{:02X}'.format(opcode) + " (Data) "+ ("None" if not data else ' '.join('{:02X}'.format(x) for x in data)))
+		if Recording == True:
+			if opcode != 0x7045:
+				RecordedPackets.append("0x" + '{:02X}'.format(opcode) + ":" + ' '.join('{:02X}'.format(x) for x in data))
+				if QtBind.isChecked(gui,cbxShowPackets):
+					log("Plugin: Recorded (Opcode) 0x" + '{:02X}'.format(opcode) + " (Data) "+ ("None" if not data else ' '.join('{:02X}'.format(x) for x in data)))
+
+	return True
+
+#-----------------Custom Script Command Stuffs End-----------------
 
 
 def CheckForUpdate():
