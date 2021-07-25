@@ -11,7 +11,7 @@ import json
 import QtBind
 
 name = 'ScriptCommands'
-version = 1.1
+version = 1.2
 NewestVersion = 0
 
 
@@ -39,6 +39,11 @@ ShowCommandsBtn = QtBind.createButton(gui, 'button_ShowCmds', ' Show Current \n 
 DeleteCommandsBtn = QtBind.createButton(gui, 'button_DelCmds', ' Delete Cmd ', 120, 240)
 ShowPacketsBtn = QtBind.createButton(gui, 'button_ShowPackets', ' Show Packets ', 220, 240)
 cbxShowPackets = QtBind.createCheckBox(gui, 'cbxAuto_clicked','Show Packets ', 330, 10)
+
+#backup
+def ResetSkip():
+	global SkipCommand
+	SkipCommand = False
 
 def LeaveParty(args):
 	if get_party():
@@ -149,15 +154,33 @@ def StopStart(args):
 		return 0
 	stop_bot()
 	Timer(1.0, start_bot, ()).start()
+	#some cases the bot may not pass over the command again when starting again
+	Timer(30.0, ResetSkip, ()).start()
 	SkipCommand = True
 	return 0
 
 #StartTrace,player..Starts tracing a player
 def StartTrace(args):
-	if len(args) == 2:
+	global SkipCommand
+	#avoid bot doing command again after restarting
+	if SkipCommand:
+		SkipCommand = False
+		return 0
+	elif len(args) == 2:
+		stop_bot()
 		player = args[1]
-		start_trace(player)
+		if start_trace(player):
+			log('Plugin: Starting to trace [%s]' %player)
+			return 0
+		else:
+			log('Plugin: Player [%s] is not near.. Continuing' %player)
+			SkipCommand = True
+			Timer(1.0, start_bot, ()).start()
+			#some cases the bot may not pass over the command again when starting again
+			Timer(30.0, ResetSkip, ()).start()
+			return 0
 	log('Plugin: Incorrect StartTrace format')
+	return 0
 
 #RemoveSkill,skillname...Remove the skill if active
 def RemoveSkill(args):
@@ -354,6 +377,8 @@ def InjectPackets():
 		log('Plugin: Finished Custom NPC Command')
 		Index = 0
 		ExecutedPackets = []
+		#some cases the bot may not pass over the command when starting again
+		Timer(30.0, ResetSkip, ()).start()
 		SkipCommand = True
 		start_bot()
 
