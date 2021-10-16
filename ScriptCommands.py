@@ -112,7 +112,7 @@ def CloseBot(args):
 
 def Terminate():
 	log("Plugin: Closing bot...")
-	#os.kill(os.getpid(),9)
+	os.kill(os.getpid(),9)
 
 #GoClientless.. Kills the Client instantly
 def GoClientless(args):
