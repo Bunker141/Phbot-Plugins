@@ -622,6 +622,9 @@ def teleported():
 			log('Plugin: Successfully Entered the Battle')
 			if not get_party():
 				Timer(5.0, BeginBattle, ()).start()
+				
+			if int(QtBind.text(gui,txtPartyMembers)) == 0:
+				Timer(5.0, BeginBattle, ()).start()
 			else:
 				WaitingforParty = True
 				log('Plugin: Waiting for Party Members to Enter')
