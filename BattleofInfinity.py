@@ -9,7 +9,7 @@ import random
 from operator import add, sub
 
 name = 'Battle of Infinity'
-version = 1.5
+version = 1.6
 NewestVersion = 0
 path = get_config_dir() + name + "\\"
 
@@ -25,6 +25,9 @@ DelayCounter = 0
 ChangeAreaAttempts = 0
 MoveAttempts = 0
 GettingMorph = False
+Backup = None
+UnstuckAfter = 3.0
+AttackAttempts = 0
 
 SoloCount = 0
 PartyCount = 0
@@ -50,6 +53,7 @@ cbxFinished = QtBind.createCheckBox(gui, 'cbxFinished_clicked','Return and start
 lbl = QtBind.createLabel(gui,'Training profile ',430,130)
 txtFinishedProfile = QtBind.createLineEdit(gui,"",520,128,90,20)
 cbxTerminate = QtBind.createCheckBox(gui, 'cbxTerminate_clicked','Terminate Bot when finished', 400, 150)
+cbxUseHighSkills = QtBind.createCheckBox(gui, 'cbxUseHighSkills','Always Use Highest Skills', 400, 180)
 
 lbl = QtBind.createLabel(gui,'Current Stage: ',10,250)
 lblStage = QtBind.createLabel(gui,'0',85,250)
@@ -284,7 +288,9 @@ def StartReg():
 
 def SetSkills():
 	global CastSkills
-	if QtBind.isChecked(gui,cbxSolo71to80):
+	if QtBind.isChecked(gui,cbxUseHighSkills):
+		CastSkills = [34605,34604]
+	elif QtBind.isChecked(gui,cbxSolo71to80):
 		if QtBind.isChecked(gui,cbxYeoha):
 			CastSkills = [34575,34574]
 		elif QtBind.isChecked(gui,cbxSeiren):
@@ -362,18 +368,25 @@ def RemoveSkill(SkillID):
 
 
 def UseSkill():
-	global ActiveSkills, SkillDelay
+	global ActiveSkills, SkillDelay, Backup, AttackAttempts
 	if Started:
 		SkillDelay = 500
 		for skill in CastSkills:
 			if skill not in ActiveSkills:
 				MobID = GetMobID()
 				if MobID > 0:
+					AttackAttempts += 1
+					if AttackAttempts >= 3:
+						MovetoRandomPoint()
+						AttackAttempts = 0
+						Backup.cancel()
 					AttackMob(skill,MobID)
 					#skill cooldown minus alittle
 					SkillDelay = 3000
 					#for your viewing pleasure
 					SelectMob(MobID)
+					Backup = Timer(UnstuckAfter, UseSkill)
+					Backup.start()
 					return
 
 def SelectMob(targetID):
@@ -410,6 +423,7 @@ def MovetoRandomPoint():
 	operator = random.choice(ops)
 	Y = operator(get_character_data()['y'], number)
 	move_to(X, Y, 0.0)
+	log('Plugin: Possibly Stuck.. Moving')
 	MoveAttempts = 0
 
 
@@ -622,9 +636,6 @@ def teleported():
 			log('Plugin: Successfully Entered the Battle')
 			if not get_party():
 				Timer(5.0, BeginBattle, ()).start()
-				
-			if int(QtBind.text(gui,txtPartyMembers)) == 0:
-				Timer(5.0, BeginBattle, ()).start()
 			else:
 				WaitingforParty = True
 				log('Plugin: Waiting for Party Members to Enter')
@@ -681,7 +692,7 @@ def event_loop():
 
 
 def handle_joymax(opcode, data):
-	global Attacking, Picking, GettingMorph
+	global Attacking, Picking, GettingMorph, Backup, AttackAttempts
 	if opcode == 0xB05A and Registering:
 		if data[0] == 2 and data[2] == 28:
 			response = data[1]
@@ -768,6 +779,8 @@ def handle_joymax(opcode, data):
 			SelfID = get_character_data()['player_id']
 			if AttackerID == SelfID:
 				ActiveSkills.append(Skill)
+				Backup.cancel()
+				AttackAttempts = 0
 				CoolDown = 5
 				Timer(CoolDown,RemoveSkill,[Skill]).start()
 				
@@ -783,7 +796,7 @@ def Online():
 		return False
 
 def joined_game():
-	Timer(10.0, loadDefaults, ()).start()
+	Timer(4.0, loadDefaults, ()).start()
 
 
 def GetConfig():
@@ -798,6 +811,7 @@ def SaveConfig():
 	data["Finished"] = QtBind.isChecked(gui,cbxFinished)
 	data["TrainingAreaProfile"] = QtBind.text(gui,txtFinishedProfile)
 	data["Terminate"] = QtBind.isChecked(gui,cbxTerminate)
+	data["UseHighSkills"] = QtBind.isChecked(gui,cbxUseHighSkills)
 	with open(GetConfig(),"w") as f:
 		f.write(json.dumps(data, indent=4))
 	log("Plugin: configs has been saved")
@@ -821,6 +835,8 @@ def LoadConfigs():
 			QtBind.setText(gui,txtFinishedProfile,data["TrainingAreaProfile"])
 		if "Terminate" in data:
 			QtBind.setChecked(gui,cbxTerminate,data["Terminate"])
+		if "UseHighSkills" in data:
+			QtBind.setChecked(gui,cbxUseHighSkills,data["UseHighSkills"])
 
 #reloading
 def loadDefaults():
