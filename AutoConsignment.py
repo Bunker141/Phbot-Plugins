@@ -149,6 +149,8 @@ def EnterConsignmentNPC():
 			p += b'\x23'
 			inject_joymax(0x7046,p, False)
 			Timer(2.0,RequestPage(0)).start()
+			return
+	log('Plugin: You are not near a Consignment NPC')
 			
 def ExitNPC():
 	#exit trade window 
