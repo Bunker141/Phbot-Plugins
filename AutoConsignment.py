@@ -135,7 +135,6 @@ def RequestPage(Page):
 	p += struct.pack('<I',ItemIndex)
 	p += struct.pack('<H',int(CurrentDegree))
 	p += b'\x00'
-	#log(str(' '.join('{:02X}'.format(x) for x in p)))
 	inject_joymax(0x750C,p,False)
 
 
