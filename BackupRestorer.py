@@ -186,15 +186,16 @@ def CheckForUpdate():
 
 
 def button_update():
-	if os.path.exists(path + "Plugins/" + "BackupRestorer.py"):
+	pypath = path[:-13]
+	if os.path.exists(pypath + "Plugins/" + "BackupRestorer.py"):
 		try:
-			os.rename(path + "Plugins/" + "BackupRestorer.py", path + "Plugins/" + "BackupRestorerBACKUP.py")
+			os.rename(pypath + "Plugins/" + "BackupRestorer.py", pypath + "Plugins/" + "BackupRestorerBACKUP.py")
 			req = urllib.request.Request('https://raw.githubusercontent.com/Bunker141/Phbot-Plugins/master/BackupRestorer.py', headers={'User-Agent': 'Mozilla/5.0'})
 			with urllib.request.urlopen(req) as f:
 				lines = str(f.read().decode("utf-8"))
-				with open(path + "Plugins/" + "BackupRestorer.py", "w+") as f:
+				with open(pypath + "Plugins/" + "BackupRestorer.py", "w+") as f:
 					f.write(lines)
-					os.remove(path + "Plugins/" + "BackupRestorerBACKUP.py")
+					os.remove(pypath + "Plugins/" + "BackupRestorerBACKUP.py")
 					log('Plugin Successfully Updated, Please Reload the Plugin to Use')
 		except Exception as ex:
 			log('Error Updating [%s] Please Update Manually or Try Again Later' %ex)
