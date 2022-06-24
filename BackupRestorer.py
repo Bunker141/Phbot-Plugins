@@ -25,9 +25,9 @@ lblProfileDates = QtBind.createLabel(gui,'Avaliable Backup Dates',220,23)
 btnRestore = QtBind.createButton(gui, 'button_restore', ' Restore ', 240, 260)
 
 lblChar = QtBind.createLabel(gui,'Char Name',400,50)
-txtChar = QtBind.createLineEdit(gui,"DeRidder",470,48,120,20)
+txtChar = QtBind.createLineEdit(gui,"r",470,48,120,20)
 lblServer = QtBind.createLabel(gui,'Server Name',400,80)
-txtServer = QtBind.createLineEdit(gui,"Theia",470,78,120,20)
+txtServer = QtBind.createLineEdit(gui,"",470,78,120,20)
 btnLoadProfiles = QtBind.createButton(gui, 'button_load', ' Load Profiles ', 470, 120)
 
 def button_load():
