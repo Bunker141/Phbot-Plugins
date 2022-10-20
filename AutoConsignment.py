@@ -9,7 +9,7 @@ import urllib.request
 import os
 
 name = 'AutoConsignment'
-version = 1.0
+version = 1.1
 NewestVersion = 0
 path = get_config_dir()[:-7]
 
@@ -93,7 +93,7 @@ def LoadDegree():
 
 SelectedClass = ''
 SelectedType = ''
-NeedsDegree = ['Attribute Stone','Element','Alchemic Stone','Socket Stone','Earring','Necklace','Ring','Garment','Armor','Protector','Blade','Bow','Shield','Spear','Sword','Glaive','Heavy Armor','Light Armor','Robe','Clearic Rod','Crossbow','Dagger','Dual Axe','Harp','One-handed Sword','Staff','Two-handed Sword','Warlock Rod','Fortress Weapon','Job Accessproes','Job Reinforcement','Job Armor','Job Weapons']
+NeedsDegree = ['Attribute Stone','Element','Alchemic Stone','Socket Stone','Earring','Necklace','Ring','Garment','Armor','Protector','Blade','Bow','Shield','Spear','Sword','Glaive','Heavy Armor','Light Armor','Robe','Clearic Rod','Crossbow','Dagger','Dual Axe','Harp','One-handed Sword','Staff','Two-handed Sword','Warlock Rod','Fortress Weapon','Job Accessories','Job Reinforcement','Job Armor','Job Weapons']
 
 
 def event_loop():
@@ -134,7 +134,6 @@ def RequestPage(Page):
 	ItemIndex = ItemList[SelectedClass][0][CurrentType]
 	p += struct.pack('<I',ItemIndex)
 	p += struct.pack('<H',int(CurrentDegree))
-	p += b'\x00'
 	inject_joymax(0x750C,p,False)
 
 
@@ -145,7 +144,11 @@ def EnterConsignmentNPC():
 			log("Plugin: Entering NPC")
 			p = struct.pack('<I', key)
 			inject_joymax(0x7045,p, False)
-			p += b'\x23'
+			locale = get_locale()
+			if locale == 18:
+				p += b'\x21'
+			else:
+				p += b'\x23'
 			inject_joymax(0x7046,p, False)
 			Timer(2.0,RequestPage(0)).start()
 			return
