@@ -9,7 +9,7 @@ import urllib.request
 import os
 
 name = 'AutoConsignment'
-version = 1.1
+version = 1.2
 NewestVersion = 0
 path = get_config_dir()[:-7]
 
@@ -134,6 +134,7 @@ def RequestPage(Page):
 	ItemIndex = ItemList[SelectedClass][0][CurrentType]
 	p += struct.pack('<I',ItemIndex)
 	p += struct.pack('<H',int(CurrentDegree))
+	p += b'\x00'
 	inject_joymax(0x750C,p,False)
 
 
@@ -149,6 +150,7 @@ def EnterConsignmentNPC():
 				p += b'\x21'
 			else:
 				p += b'\x23'
+			
 			inject_joymax(0x7046,p, False)
 			Timer(2.0,RequestPage(0)).start()
 			return
@@ -230,7 +232,7 @@ def handle_joymax(opcode,data):
 					Timer(20.0, EnterConsignmentNPC, ()).start()
 				else:
 					Started = False
-
+			return False
 
 	return True
 
