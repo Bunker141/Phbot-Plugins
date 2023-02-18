@@ -9,7 +9,7 @@ import urllib.request
 import os
 
 name = 'AutoConsignment'
-version = 1.2
+version = 1.3
 NewestVersion = 0
 path = get_config_dir()[:-7]
 
@@ -145,12 +145,7 @@ def EnterConsignmentNPC():
 			log("Plugin: Entering NPC")
 			p = struct.pack('<I', key)
 			inject_joymax(0x7045,p, False)
-			locale = get_locale()
-			if locale == 18:
-				p += b'\x21'
-			else:
-				p += b'\x23'
-			
+			p += b'\x21'
 			inject_joymax(0x7046,p, False)
 			Timer(2.0,RequestPage(0)).start()
 			return
