@@ -9,7 +9,7 @@ import random
 from operator import add, sub
 
 name = 'Battle of Infinity'
-version = 1.6
+version = 1.7
 NewestVersion = 0
 path = get_config_dir() + name + "\\"
 
@@ -445,8 +445,9 @@ def MovetoPick():
 
 def ConfirmAreaChanged():
 	global ChangeAreaAttempts
-	Setx = get_training_position()['x']
-	Sety = get_training_position()['y']
+	training_area = get_training_area()
+	Setx = training_area['x']
+	Sety = training_area['y']
 	if Setx == 14762.0 and Sety == 2592.0:
 		start_bot()
 		ChangeAreaAttempts = 0
