@@ -302,6 +302,7 @@ def CheckForUpdate():
 
 
 def button_update():
+	path = get_config_dir()[:-7]
 	if os.path.exists(path + "Plugins/" + "AutoCursed.py"):
 		try:
 			os.rename(path + "Plugins/" + "AutoCursed.py", path + "Plugins/" + "AutoCursedBACKUP.py")
