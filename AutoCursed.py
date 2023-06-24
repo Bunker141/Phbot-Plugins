@@ -8,7 +8,7 @@ import os
 import time
 
 name = 'AutoCursed'
-version = 1.0
+version = 1.1
 NewestVersion = 0
 path = get_config_dir() + name + "\\"
 
@@ -170,7 +170,7 @@ def EditSkill():
 			if PotionQty < MasteryLevel:
 				p += struct.pack('b', Deduction)
 				log('Plugin: Reducing Mastery [%s] from Level [%s] to Level [%s]' %(Mastery,MasteryLevel,Deduction))
-			inject_joymax(0x7202,p, False)
+			inject_joymax(0x7203,p, False)
 			time.sleep(1)
 		ExitNPC()
 		return
