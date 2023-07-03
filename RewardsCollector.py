@@ -51,7 +51,7 @@ def handle_joymax(opcode,data):
 						log('Plugin: Not Enough Inventory Slots to Claim Items...')
 						return True
 					receiveItemFromMessage(messageID)
-					Timer(0.3, DeleteMessage, [messageID]).start()
+					#Timer(0.3, DeleteMessage, [messageID]).start()
 	return True
 
 def GetMessages():
