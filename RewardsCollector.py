@@ -23,7 +23,7 @@ def handle_joymax(opcode,data):
 		if GetRemainingSlots() < 3:
 			log('Plugin: Not Enough Inventory Slots to Claim Items...')
 			return True
-		Timer(15.0, receiveItemFromMessage, [messageID]).start()
+		Timer(25.0, receiveItemFromMessage, [messageID]).start()
 
 	if opcode == 0xB0DE:
 		if data[0] == 2 and data[1] == 5 and data[2] == 7 and data[3] == 220:
