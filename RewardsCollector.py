@@ -5,8 +5,10 @@ import QtBind
 import urllib.request
 
 name = 'RewardsCollector'
-version = 1.0
+version = 1.1
 NewestVersion = 0
+
+CollectMessageID = 0
 
 gui = QtBind.init(__name__, name)
 
@@ -17,31 +19,30 @@ def button_collect():
 	GetMessages()
 
 def handle_joymax(opcode,data):
+	global CollectMessageID
 	if opcode == 0x38DD and data[0] == 1 and data[1] == 1:
 		log('Plugin: Reward Message Recevied...')
-		messageID = struct.unpack_from('<Q', data, 2)[0]
-		if GetRemainingSlots() < 3:
-			log('Plugin: Not Enough Inventory Slots to Claim Items...')
-			return True
-		Timer(25.0, receiveItemFromMessage, [messageID]).start()
+		CollectMessageID = struct.unpack_from('<Q', data, 2)[0]
 
 	if opcode == 0xB0DE:
 		if data[0] == 2 and data[1] == 5 and data[2] == 7 and data[3] == 220:
 			log('Plugin: Error Receiving Messages... Please teleport')
 			return True
 		if data[0] == 1 and data[1] == 5:	
-			messageCount = data[5]
+			messageCount = struct.unpack_from('<H', data, 2)[0]
 			Index = 6
 			for i in range(messageCount):
 				Index += 1
 				messageID = struct.unpack_from('<Q', data, Index)[0]
 				Index += 9
-				MessageLength = struct.unpack_from('<H', data, Index)[0]
-				Index += (MessageLength + 2)
+				MessageSenderLength = struct.unpack_from('<H', data, Index)[0]
+				Index += 2
+				messageSender = struct.unpack_from('<' + str(MessageSenderLength) + 's',data,Index)[0].decode('cp1252')
+				Index += MessageSenderLength
 				messageTypeLength = struct.unpack_from('<H', data, Index)[0]
 				Index += 2
-				messageType = struct.unpack_from('<' + str(messageTypeLength - 4) + 's',data,(Index + 4))[0].decode('cp1252')
-				Index += messageTypeLength
+				messageType = struct.unpack_from('<' + str(messageTypeLength) + 's',data[Index:Index+messageTypeLength*2].replace(b'\x00',b''),0)[0].decode('cp1252')
+				Index += messageTypeLength*2
 				Index += 8
 				itemAmount = struct.unpack_from('<B', data, Index)[0]
 				Index += (itemAmount * 4) + 1
@@ -80,6 +81,16 @@ def GetRemainingSlots():
 			if Item:
 				TotalItems += 1
 	return Size - TotalItems
+
+def teleported():
+	global CollectMessageID
+	if CollectMessageID != 0:
+		if GetRemainingSlots() < 3:
+			log('Plugin: Not Enough Inventory Slots to Claim Items...')
+			return
+		Timer(5.0, receiveItemFromMessage, [CollectMessageID]).start()
+		CollectMessageID = 0
+	
 
 def CheckForUpdate():
 	global NewestVersion
