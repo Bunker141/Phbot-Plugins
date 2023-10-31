@@ -279,7 +279,6 @@ def ResetWeapons(args):
 	if os.path.exists(path + ConfigFile):
 		with open(path + ConfigFile,"r") as f:
 			Configdata = json.load(f)
-			log(str(Configdata['Inventory']))
 			if Items == 'all':
 				Configdata['Inventory'] = {"Primary": 0, "Secondary": 0, "Shield": 0}
 			if Items == 'primary':
