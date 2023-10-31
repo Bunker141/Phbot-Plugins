@@ -11,7 +11,7 @@ import json
 import QtBind
 
 name = 'ScriptCommands'
-version = 1.2
+version = 1.3
 NewestVersion = 0
 
 
@@ -29,6 +29,7 @@ Recording = False
 RecordedPackets = []
 ExecutedPackets = []
 Index = 0
+StopBot = True
 
 gui = QtBind.init(__name__, name)
 LvlSaveName = QtBind.createLabel(gui,'Save Name ',10,13)
@@ -231,6 +232,68 @@ def OpenphBot(args):
 	log('Plugin: Invalid path to bot')
 	return 0
 
+#DismountPet,transport
+def DismountPet(args):
+	PetType = args[1].lower()
+	if PetType == 'pick':
+		log('Plugin: You cant dismount a pick pet silly goose')
+		return 0
+	pets = get_pets()
+	if pets:
+		for id,pet in pets.items():
+			if pet['type'] == PetType:
+				p = b'\x00'
+				p += struct.pack('I',id)
+				inject_joymax(0x70CB,p, False)
+				return 0
+	return 0
+
+#UnsummonPet,fellow
+def UnsummonPet(args):
+	PetType = args[1].lower()
+	if PetType == 'pick':
+		return 0
+	elif PetType == 'horse':
+		return 0
+	pets = get_pets()
+	if pets:
+		for id,pet in pets.items():
+			if pet['type'] == PetType:
+				p = struct.pack('I',id)
+				if PetType == 'transport':
+					inject_joymax(0x70C6,p, False)
+				else:
+					inject_joymax(0x7116,p, False)
+				log(f'Plugin: Unsummoning [{PetType}]')
+				return 0
+	return 0
+
+#ResetWeapons,all or ResetWeapons,primary or ResetWeapons,secondary or ResetWeapons,shield
+def ResetWeapons(args):
+	Items = 'all'
+	if len(args) == 2:
+		Items = args[1].lower()
+	path = get_config_dir()
+	CharData = get_character_data()
+	ConfigFile = f"{CharData['server']}_{CharData['name']}.{get_profile()}.json" if len(get_profile()) > 0 else f"{CharData['server']}_{CharData['name']}.json"
+	if os.path.exists(path + ConfigFile):
+		with open(path + ConfigFile,"r") as f:
+			Configdata = json.load(f)
+			log(str(Configdata['Inventory']))
+			if Items == 'all':
+				Configdata['Inventory'] = {"Primary": 0, "Secondary": 0, "Shield": 0}
+			if Items == 'primary':
+				Configdata['Inventory']['Primary'] = 0
+			if Items == 'secondary':
+				Configdata['Inventory']['Secondary'] = 0
+			if Items == 'shield':
+				Configdata['Inventory']['Shield'] = 0
+			with open(path + ConfigFile ,"w") as f:
+				f.write(json.dumps(Configdata, indent=4))
+				log('Plugin: Weapons have been reset')
+				set_profile(get_profile())
+				return 0
+	return 0
 	
 def event_loop():
 	global delay_counter, CheckStartTime, SkipCommand, CheckCloseTime
@@ -343,13 +406,24 @@ def SaveNPCPackets(Name,Packets=[]):
 		f.write(json.dumps(data, indent=4))
 	log("Plugin: Custom NPC Command Saved")
 
-
+#example.. CustomNPC,savedname,true
 def CustomNPC(args):
-	global SkipCommand
+	global SkipCommand, StopBot
 	if SkipCommand:
 		SkipCommand = False
 		return 0
-	stop_bot()
+	if len(args) < 2:
+		log('Plugin: Invalid command, use CustomNPC,savedname,state')
+		return 0
+	StopBot = True
+	if len(args) == 3:
+		State = args[2]
+		if State.lower() == 'true':
+			StopBot = True
+		if State.lower() == 'false':
+			StopBot = False
+	if StopBot:
+		stop_bot()
 	Name = args[1]
 	GetPackets(Name)
 	#avoid the bot closing the npc window
@@ -380,7 +454,8 @@ def InjectPackets():
 		#some cases the bot may not pass over the command when starting again
 		Timer(30.0, ResetSkip, ()).start()
 		SkipCommand = True
-		start_bot()
+		if StopBot:
+			start_bot()
 
 
 def handle_silkroad(opcode, data):
