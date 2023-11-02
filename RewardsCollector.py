@@ -42,7 +42,6 @@ def handle_joymax(opcode,data):
 				messageTypeLength = struct.unpack_from('<H', data, Index)[0]
 				Index += 2
 				messageType = struct.unpack_from('<' + str(messageTypeLength*2) + 's',data,Index)[0].decode('utf-16')
-				log(messageType)
 				Index += messageTypeLength*2
 				Index += 8
 				itemAmount = struct.unpack_from('<B', data, Index)[0]
