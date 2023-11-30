@@ -11,7 +11,7 @@ import json
 import QtBind
 
 name = 'ScriptCommands'
-version = 1.3
+version = 1.4
 NewestVersion = 0
 
 
@@ -185,42 +185,36 @@ def StartTrace(args):
 
 #RemoveSkill,skillname...Remove the skill if active
 def RemoveSkill(args):
-	locale = get_locale()
-	if locale == 18 or locale == 56:
-		RemSkill = args[1]
-		skills = get_active_skills()
-		for ID, skill in skills.items():
-			if skill['name'] == RemSkill:
-				packet = b'\x01\x05'
-				packet += struct.pack('<I', ID)
-				packet += b'\x00'
-				inject_joymax(0x7074,packet,False)
-				log('Plugin: Removing skill [%s]' %RemSkill)
-				return 0
-		log('Plugin: Skill is not active')
-		return 0
-	log('Plugin: Only supported on iSRO or TRSRO, contact me to add support for your server')
+	RemSkill = args[1]
+	skills = get_active_skills()
+	for ID, skill in skills.items():
+		if skill['name'] == RemSkill:
+			packet = b'\x01\x05'
+			packet += struct.pack('<I', ID)
+			packet += b'\x00'
+			inject_joymax(0x7074,packet,False)
+			log('Plugin: Removing skill [%s]' %RemSkill)
+			return 0
+	log('Plugin: Skill is not active')
 	return 0
+
 
 #Drop,itemname... drops the first stack of the specified item
 def Drop(args):
-	locale = get_locale()
-	if locale == 18 or locale == 56:
-		DropItem = args[1]
-		items = get_inventory()['items']
-		for slot, item in enumerate(items):
-			if item:
-				name = item['name']
-				if name == DropItem:
-					p = b'\x07' # static stuff maybe
-					p += struct.pack('B', slot)
-					log('Plugin: Dropping item [%s][%s]' %(item['quantity'],name))
-					inject_joymax(0x7034,p,True)
-					return 0
-		log(r'Plugin: You Dont Have any Items to Drop')
-		return 0
-	log('Plugin: Only supported on iSRO or TRSRO, contact me to add support for your server')
+	DropItem = args[1]
+	items = get_inventory()['items']
+	for slot, item in enumerate(items):
+		if item:
+			name = item['name']
+			if name == DropItem:
+				p = b'\x07' # static stuff maybe
+				p += struct.pack('B', slot)
+				log('Plugin: Dropping item [%s][%s]' %(item['quantity'],name))
+				inject_joymax(0x7034,p,True)
+				return 0
+	log(r'Plugin: You Dont Have any Items to Drop')
 	return 0
+
 
 #OpenphBot,commandlinearguments..opens a bot with the specified arguements
 def OpenphBot(args):
@@ -293,6 +287,15 @@ def ResetWeapons(args):
 				set_profile(get_profile())
 				return 0
 	return 0
+
+#SetArea,trainingareaname
+def SetArea(args):
+	if len(args) == 2:
+		set_training_area(args[1])
+		log(f"Plugin: Training area changed to [{args[1]}]")
+		return 0
+	log('Plugin: Please specify a training area name')
+	return 0
 	
 def event_loop():
 	global delay_counter, CheckStartTime, SkipCommand, CheckCloseTime
@@ -320,8 +323,11 @@ def event_loop():
 
 def button_start():
 	global BtnStart, RecordedPackets
+	if InNoNoPlace():
+		log('Plugin: You cant use CustomNPC Here...')
+		return
 	if len(QtBind.text(gui,SaveName)) <= 0:
-		log('Plugin: Please Enter a Name for the Custom Scipt Command')
+		log('Plugin: Please Enter a Name for the Custom Script Command')
 		return
 	if BtnStart == False:
 		BtnStart = True
@@ -405,9 +411,17 @@ def SaveNPCPackets(Name,Packets=[]):
 		f.write(json.dumps(data, indent=4))
 	log("Plugin: Custom NPC Command Saved")
 
+def InNoNoPlace():
+	if get_position()['region'] < 0:
+		return True
+	return False
+
 #example.. CustomNPC,savedname,true
 def CustomNPC(args):
 	global SkipCommand, StopBot
+	if InNoNoPlace():
+		log('Plugin: You cant use CustomNPC Here...')
+		return 0
 	if SkipCommand:
 		SkipCommand = False
 		return 0
