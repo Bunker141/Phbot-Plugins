@@ -11,7 +11,7 @@ import json
 import QtBind
 
 name = 'ScriptCommands'
-version = 1.4
+version = 1.5
 NewestVersion = 0
 
 
@@ -323,9 +323,6 @@ def event_loop():
 
 def button_start():
 	global BtnStart, RecordedPackets
-	if InNoNoPlace():
-		log('Plugin: You cant use CustomNPC Here...')
-		return
 	if len(QtBind.text(gui,SaveName)) <= 0:
 		log('Plugin: Please Enter a Name for the Custom Script Command')
 		return
@@ -411,17 +408,10 @@ def SaveNPCPackets(Name,Packets=[]):
 		f.write(json.dumps(data, indent=4))
 	log("Plugin: Custom NPC Command Saved")
 
-def InNoNoPlace():
-	if get_position()['region'] < 0:
-		return True
-	return False
 
 #example.. CustomNPC,savedname,true
 def CustomNPC(args):
 	global SkipCommand, StopBot
-	if InNoNoPlace():
-		log('Plugin: You cant use CustomNPC Here...')
-		return 0
 	if SkipCommand:
 		SkipCommand = False
 		return 0
