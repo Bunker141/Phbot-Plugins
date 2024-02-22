@@ -5,7 +5,7 @@ import QtBind
 import urllib.request
 
 name = 'RewardsCollector'
-version = 1.1
+version = 1.2
 NewestVersion = 0
 
 CollectMessageID = 0
@@ -32,27 +32,32 @@ def handle_joymax(opcode,data):
 			messageCount = struct.unpack_from('<H', data, 2)[0]
 			Index = 6
 			for i in range(messageCount):
-				Index += 1
-				messageID = struct.unpack_from('<Q', data, Index)[0]
-				Index += 9
-				MessageSenderLength = struct.unpack_from('<H', data, Index)[0]
-				Index += 2
-				messageSender = struct.unpack_from('<' + str(MessageSenderLength) + 's',data,Index)[0].decode('cp1252')
-				Index += MessageSenderLength
-				messageTypeLength = struct.unpack_from('<H', data, Index)[0]
-				Index += 2
-				messageType = struct.unpack_from('<' + str(messageTypeLength*2) + 's',data,Index)[0].decode('utf-16')
-				Index += messageTypeLength*2
-				Index += 8
-				itemAmount = struct.unpack_from('<B', data, Index)[0]
-				Index += (itemAmount * 4) + 1
+				try:
+					Index += 1
+					messageID = struct.unpack_from('<Q', data, Index)[0]
+					Index += 9
+					MessageSenderLength = struct.unpack_from('<H', data, Index)[0]
+					Index += 2
+					messageSender = struct.unpack_from('<' + str(MessageSenderLength) + 's',data,Index)[0].decode('cp1252')
+					log(messageSender)
+					Index += MessageSenderLength
+					messageTypeLength = struct.unpack_from('<H', data, Index)[0]
+					Index += 2
+					messageType = struct.unpack_from('<' + str(messageTypeLength*2) + 's',data,Index)[0].decode('utf-16')
+					log(messageType)
+					Index += messageTypeLength*2
+					Index += 8
+					itemAmount = struct.unpack_from('<B', data, Index)[0]
+					Index += (itemAmount * 4) + 1
 
-				if messageType.endswith(('UIIT_STYRIA_SERVER_TITLE', 'UIIT_INFINITY_SERVER_TITLE')):
-					if GetRemainingSlots() < 3:
-						log('Plugin: Not Enough Inventory Slots to Claim Items...')
-						return True
-					receiveItemFromMessage(messageID)
-					#Timer(0.3, DeleteMessage, [messageID]).start()
+					if "UIIT_" in messageType:
+						if GetRemainingSlots() < 3:
+							log('Plugin: Not Enough Inventory Slots to Claim Items...')
+							return True
+						receiveItemFromMessage(messageID)
+						#Timer(0.3, DeleteMessage, [messageID]).start()
+				except Exception as ex:
+					pass
 	return True
 
 def GetMessages():
