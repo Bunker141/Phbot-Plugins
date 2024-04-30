@@ -11,7 +11,7 @@ import json
 import QtBind
 
 name = 'ScriptCommands'
-version = 1.5
+version = 1.6
 NewestVersion = 0
 
 
@@ -296,6 +296,85 @@ def SetArea(args):
 		return 0
 	log('Plugin: Please specify a training area name')
 	return 0
+
+def CalcRadiusFromME(Px,Py):
+	my = get_position()
+	dist = ((my['x'] - Px)**2 + (my['y'] - Py)**2)**0.5
+	return dist
+	
+#ExchangePlayer,playername.... player must be in your party
+def ExchangePlayer(args):
+	if len(args) == 2:
+		PlayerName = args[1]
+		party = get_party()
+		if not party:
+			log(f"Plugin: You are not in a party!, Cant Exchange")
+			return 0
+		for key, player in party.items():
+			if player['name'] == PlayerName:
+				radius = CalcRadiusFromME(player['x'],player['y'])
+				if player['player_id'] <= 0 or radius > 20:
+					log(f"Plugin: Player [{player['name']}] is out of range! Cant Exchange")
+					return 0
+				log(f"Plugin: Exchanging with [{player['name']}]")
+				p = struct.pack('<I', player['player_id'])
+				inject_joymax(0x7081,p,True)
+				return 0
+		log(f"Plugin: Player [{PlayerName}] is not in your party! Cant Exchange")
+		return 0
+	log(f"Plugin: Please specify a player to trade with! Cant Exchange")
+	return 0
+
+#ChangeBotOption,value,key,key,key,key.... example ChangeBotOption,true,Town,Return,Death
+def ChangeBotOption(args):
+	if len(args) <= 3 or len(args) >= 7:
+		log(f"Plugin: Incorrect Format, cant change setting.")
+		return 0
+	value = args[1]
+	path = get_config_dir()
+	CharData = get_character_data()
+	ConfigFile = f"{CharData['server']}_{CharData['name']}.{get_profile()}.json" if len(get_profile()) > 0 else f"{CharData['server']}_{CharData['name']}.json"
+	if os.path.exists(path + ConfigFile):
+		with open(path + ConfigFile,"r") as f:
+			Configdata = json.load(f)
+			if len(args) == 4:
+				try:
+					data = Configdata[args[2]][args[3]]
+				except:
+					log('Plugin: Incorrect json key, cant change setting')
+					return 0					
+				if type(data) == list:
+					Configdata[args[2]][args[3]].append(value)
+				else:
+					Configdata[args[2]][args[3]] = value
+				
+			if len(args) == 5:
+				try:
+					data = Configdata[args[2]][args[3]][args[4]]
+				except:
+					log('Plugin: Incorrect json key, cant change setting')
+					return 0
+				if type(data) == list:
+					Configdata[args[2]][args[3]][args[4]].append(value)
+				else:
+					Configdata[args[2]][args[3]][args[4]] = value
+					
+			if len(args) == 6:
+				try:
+					data = Configdata[args[2]][args[3]][args[4]][args[5]]
+				except:
+					log('Plugin: Incorrect json key, cant change setting')
+					return 0
+				if type(data) == list:
+					Configdata[args[2]][args[3]][args[4]][args[5]].append(value)
+				else:
+					Configdata[args[2]][args[3]][args[4]][args[5]] = value
+				
+			with open(path + ConfigFile ,"w") as f:
+				f.write(json.dumps(Configdata, indent=4))
+				log('Plugin: Settings Successfully Changed')
+				set_profile(get_profile())
+				return 0
 	
 def event_loop():
 	global delay_counter, CheckStartTime, SkipCommand, CheckCloseTime
@@ -467,14 +546,14 @@ def handle_silkroad(opcode, data):
 		return True
 	if BtnStart:
 		#select NPC to start recording
-		if opcode == 0x7045:
+		if opcode == 0x7045 or opcode == 0x7C45:
 			Recording = True
 			log('Plugin: Recording Started')
 			RecordedPackets.append("0x" + '{:02X}'.format(opcode) + ":" + ' '.join('{:02X}'.format(x) for x in data))
 			if QtBind.isChecked(gui,cbxShowPackets):
 				log("Plugin: Recorded (Opcode) 0x" + '{:02X}'.format(opcode) + " (Data) "+ ("None" if not data else ' '.join('{:02X}'.format(x) for x in data)))
 		if Recording == True:
-			if opcode != 0x7045:
+			if opcode != 0x7045 or opcode != 0x7C45:
 				RecordedPackets.append("0x" + '{:02X}'.format(opcode) + ":" + ' '.join('{:02X}'.format(x) for x in data))
 				if QtBind.isChecked(gui,cbxShowPackets):
 					log("Plugin: Recorded (Opcode) 0x" + '{:02X}'.format(opcode) + " (Data) "+ ("None" if not data else ' '.join('{:02X}'.format(x) for x in data)))
