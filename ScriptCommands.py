@@ -245,16 +245,12 @@ def DismountPet(args):
 #UnsummonPet,fellow
 def UnsummonPet(args):
 	PetType = args[1].lower()
-	if PetType == 'pick':
-		return 0
-	elif PetType == 'horse':
-		return 0
 	pets = get_pets()
 	if pets:
 		for id,pet in pets.items():
 			if pet['type'] == PetType:
 				p = struct.pack('I',id)
-				if PetType == 'transport':
+				if PetType == 'transport' or PetType == 'horse':
 					inject_joymax(0x70C6,p, False)
 				else:
 					inject_joymax(0x7116,p, False)
