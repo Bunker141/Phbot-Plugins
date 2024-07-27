@@ -156,7 +156,7 @@ def EditSkill():
 	if CheckIfOnlyMasteriesLeft():
 		for Mastery in RemoveSkills:
 			PotionQty = int(GetPotionCount())
-			Mastery = Mastery.strip(' Mastery')
+			Mastery = Mastery[:-8]
 			MasteryLevel = GetMasteryLevel(Mastery)
 			MasteryID = GetMasteryID(Mastery)
 			Deduction = MasteryLevel - PotionQty
