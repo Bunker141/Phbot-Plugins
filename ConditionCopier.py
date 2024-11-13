@@ -4,7 +4,7 @@ import json
 import os
 
 name = 'ConditionCopier'
-version = 1.0
+version = 1.1
 path = get_config_dir()
 
 gui = QtBind.init(__name__, name)
@@ -40,7 +40,7 @@ def button_copy():
 	if len(FromProfile) > 0:
 		FromFile = "%s_%s.%s.json" %(FromServer,FromChar,FromProfile)
 	if os.path.exists(path + FromFile):
-		with open(path + FromFile,"r") as f:
+		with open(path + FromFile,"r", encoding = "utf-8") as f:
 			Fromdata = json.load(f)
 			FromConditions = Fromdata['Conditions']
 	else:
@@ -60,15 +60,15 @@ def button_copy():
 	if len(ToProfile) > 0:
 		ToFile = "%s_%s.%s.json" %(ToServer,ToChar,ToProfile)
 	if os.path.exists(path + ToFile):
-		with open(path + ToFile,"r") as f:
+		with open(path + ToFile,"r", encoding = "utf-8") as f:
 			Todata = json.load(f)
 			Todata['Conditions'] = FromConditions
 	else:
 		log('Plugin: TO Config file doesnt exist')
 		return
-
-	with open(path + ToFile ,"w") as f:
-		f.write(json.dumps(Todata, indent=4))
+	log(str(FromConditions))
+	with open(path + ToFile ,"w", encoding = "utf-8") as f:
+		f.write(json.dumps(Todata, indent=4,))
 		log('Plugins: Conditions Successfully copied from [%s] to [%s]' %(FromFile,ToFile))		
 
 
