@@ -9,7 +9,7 @@ import urllib.request
 import os
 
 name = 'AutoConsignment'
-version = 1.3
+version = 1.4
 NewestVersion = 0
 path = get_config_dir()[:-7]
 
@@ -18,7 +18,8 @@ gui = QtBind.init(__name__, name)
 PageIndex = 0
 ItemCount = 0
 Started = False
-
+NPCthread = None
+Pagethread = None
 
 button1 = QtBind.createButton(gui, 'button_search', ' Search ', 500, 32)
 lstItems = QtBind.createList(gui,10,62,580,200)
@@ -49,20 +50,35 @@ lblDegree = QtBind.createLabel(gui,'Degree',330,10)
 ComboDegree = QtBind.createCombobox(gui,330,32,150,22)
 
 def button_start():
-	global Started, PageIndex, ItemCount
+	global Started, PageIndex, ItemCount, NPCthread, Pagethread
+	if Started == 'Search':
+		log('Plugin: Currently Searching... Please Wait...')
+		return
 	if not Started:
+		if NPCthread:
+			NPCthread.cancel()
+		if Pagethread:
+			Pagethread.cancel()
 		Started = True
 		QtBind.setText(gui,buttonStart,'               Stop               ')
 		EnterConsignmentNPC()
+			
 	elif Started:
+		if NPCthread:
+			NPCthread.cancel()
+		if Pagethread:
+			Pagethread.cancel()
 		PageIndex = 0
 		ItemCount = 0
 		Started = False
 		QtBind.setText(gui,buttonStart,'               Start               ')
-		ExitNPC()	
+		ExitNPC()
 
 def button_search():
 	global Started
+	if Started == 'Search':
+		log('Plugin: Currently Searching... Please Wait...')
+		return
 	QtBind.clear(gui,lstItems)
 	Started = 'Search'
 	EnterConsignmentNPC()
@@ -139,6 +155,8 @@ def RequestPage(Page):
 
 
 def EnterConsignmentNPC():
+	global Pagethread
+	QtBind.clear(gui,lstItems)
 	npcs = get_npcs()
 	for key, npc in npcs.items():
 		if npc['servername'].startswith('NPC_OPEN_MARKET'):
@@ -147,7 +165,8 @@ def EnterConsignmentNPC():
 			inject_joymax(0x7045,p, False)
 			p += b'\x21'
 			inject_joymax(0x7046,p, False)
-			Timer(2.0,RequestPage(0)).start()
+			Pagethread = Timer(2.0, RequestPage(0))
+			Pagethread.start()
 			return
 	log('Plugin: You are not near a Consignment NPC')
 			
@@ -167,11 +186,11 @@ def BuyItem(CharName,ListingID,ItemID):
 	p += struct.pack("<I", ListingID)
 	p += struct.pack("<I", ItemID)
 	inject_joymax(0x750A,p, False)
-	Timer(3.0, ExitNPC, ()).start()
+	ExitNPC()
 
 def handle_joymax(opcode,data):
 	if opcode == 0xB50C:
-		global PageIndex, ItemCount, Started
+		global PageIndex, ItemCount, Started, NPCthread, Pagethread
 		if data[0] == 1 and Started or Started == 'Search':
 
 			BuyItems = QtBind.getItems(gui,lstBuyItems)
@@ -208,7 +227,8 @@ def handle_joymax(opcode,data):
 					PageIndex = 0
 					ItemCount = 0
 					#start again in 10 seconds
-					Timer(10.0, EnterConsignmentNPC, ()).start()
+					NPCthread = Timer(20.0, EnterConsignmentNPC)
+					NPCthread.start()
 					return
 
 				itemdata = 'Seller: [%s] Quantity: [%s] Price: [%s] Item :[%s]' %(CharName,Quantity,Price,ItemName)
@@ -216,15 +236,17 @@ def handle_joymax(opcode,data):
 			#request next page
 			if PageIndex < NumberOfPages:
 				PageIndex += 1
-				Timer(1.0,RequestPage(PageIndex)).start()
+				Pagethread = Timer(0.1, RequestPage, [PageIndex])
+				Pagethread.start()
 			else:
 				log("Plugin: Finished Checking all Items.. Total Items[%s]" %ItemCount)
 				PageIndex = 0
 				ItemCount = 0
-				Timer(1.0, ExitNPC, ()).start()
+				Timer(0.1, ExitNPC, ()).start()
 				#start again in 20 seconds
 				if Started != 'Search':
-					Timer(20.0, EnterConsignmentNPC, ()).start()
+					NPCthread = Timer(20.0, EnterConsignmentNPC)
+					NPCthread.start()
 				else:
 					Started = False
 			return False
