@@ -72,7 +72,7 @@ def button_start():
 		ItemCount = 0
 		Started = False
 		QtBind.setText(gui,buttonStart,'               Start               ')
-		ExitNPC()
+		Timer(1.0, ExitNPC, ()).start()
 
 def button_search():
 	global Started
@@ -186,7 +186,7 @@ def BuyItem(CharName,ListingID,ItemID):
 	p += struct.pack("<I", ListingID)
 	p += struct.pack("<I", ItemID)
 	inject_joymax(0x750A,p, False)
-	ExitNPC()
+	Timer(1.0, ExitNPC, ()).start()
 
 def handle_joymax(opcode,data):
 	if opcode == 0xB50C:
@@ -242,7 +242,7 @@ def handle_joymax(opcode,data):
 				log("Plugin: Finished Checking all Items.. Total Items[%s]" %ItemCount)
 				PageIndex = 0
 				ItemCount = 0
-				Timer(0.1, ExitNPC, ()).start()
+				Timer(1.0, ExitNPC, ()).start()
 				#start again in 20 seconds
 				if Started != 'Search':
 					NPCthread = Timer(20.0, EnterConsignmentNPC)
