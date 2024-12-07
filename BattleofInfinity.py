@@ -9,7 +9,7 @@ import random
 from operator import add, sub
 
 name = 'Battle of Infinity'
-version = 1.7
+version = 1.8
 NewestVersion = 0
 path = get_config_dir() + name + "\\"
 
@@ -54,6 +54,7 @@ lbl = QtBind.createLabel(gui,'Training profile ',430,130)
 txtFinishedProfile = QtBind.createLineEdit(gui,"",520,128,90,20)
 cbxTerminate = QtBind.createCheckBox(gui, 'cbxTerminate_clicked','Terminate Bot when finished', 400, 150)
 cbxUseHighSkills = QtBind.createCheckBox(gui, 'cbxUseHighSkills','Always Use Highest Skills', 400, 180)
+cbxRandomTarget = QtBind.createCheckBox(gui, 'cbxRandomTarget','Select Random Target', 400, 210)
 
 lbl = QtBind.createLabel(gui,'Current Stage: ',10,250)
 lblStage = QtBind.createLabel(gui,'0',85,250)
@@ -366,14 +367,15 @@ def RemoveSkill(SkillID):
 	if SkillID in ActiveSkills:
 		ActiveSkills.remove(SkillID)
 
-
+SelectedMob = 0
 def UseSkill():
-	global ActiveSkills, SkillDelay, Backup, AttackAttempts
+	global ActiveSkills, SkillDelay, Backup, AttackAttempts, SelectedMob
 	if Started:
 		SkillDelay = 500
 		for skill in CastSkills:
 			if skill not in ActiveSkills:
 				MobID = GetMobID()
+				SelectedMob = MobID
 				if MobID > 0:
 					AttackAttempts += 1
 					if AttackAttempts >= 3:
@@ -393,18 +395,29 @@ def SelectMob(targetID):
 	packet = struct.pack('<I',targetID)
 	inject_joymax(0x7045,packet,False)
 
-
 def GetMobID():
 	global MoveAttempts
+	MobIDs = []
 	AttackRadius = int(QtBind.text(gui,txtRadius))
 	Mobs = get_monsters()
 	if Mobs:
 		for key, mob in Mobs.items():
 			dist = CalcRadiusFromME(mob['x'],mob['y'])
 			if dist < AttackRadius:
-				return key
+				if QtBind.isChecked(gui,cbxRandomTarget):
+					MobIDs.append(key)
+				else:
+					return key
 			else:
-				return 0
+				if QtBind.isChecked(gui,cbxRandomTarget):
+					continue
+				else:
+					return 0
+		if QtBind.isChecked(gui,cbxRandomTarget):
+			if SelectedMob in MobIDs:
+				return SelectedMob
+			return random.choice(MobIDs)
+			
 	elif not AtAttackArea():
 		#move back to center
 		if MoveAttempts <= 5:
@@ -813,6 +826,7 @@ def SaveConfig():
 	data["TrainingAreaProfile"] = QtBind.text(gui,txtFinishedProfile)
 	data["Terminate"] = QtBind.isChecked(gui,cbxTerminate)
 	data["UseHighSkills"] = QtBind.isChecked(gui,cbxUseHighSkills)
+	data["RandomTarget"] = QtBind.isChecked(gui,cbxRandomTarget)
 	with open(GetConfig(),"w") as f:
 		f.write(json.dumps(data, indent=4))
 	log("Plugin: configs has been saved")
@@ -838,6 +852,8 @@ def LoadConfigs():
 			QtBind.setChecked(gui,cbxTerminate,data["Terminate"])
 		if "UseHighSkills" in data:
 			QtBind.setChecked(gui,cbxUseHighSkills,data["UseHighSkills"])
+		if "RandomTarget" in data:
+			QtBind.setChecked(gui,cbxRandomTarget,data["RandomTarget"])
 
 #reloading
 def loadDefaults():
