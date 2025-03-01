@@ -4,7 +4,7 @@ import os
 import json
 
 name = "PluginLoader"
-version = 1.0
+version = 1.1
 
 LoadPlugins = []
 
@@ -85,9 +85,11 @@ def LoadData():
 					for plugin in LoadPlugins:
 						QtBind.append(gui,PluginsToLoad,plugin)
 					return
-			LoadPlugins = data["_"]['PluginsToLoad']
-			for plugin in LoadPlugins:
-				QtBind.append(gui,PluginsToLoad,plugin)
+			#empty bot, can be used to load plugins by default		
+			if "_" in data:
+				LoadPlugins = data["_"]['PluginsToLoad']
+				for plugin in LoadPlugins:
+					QtBind.append(gui,PluginsToLoad,plugin)
 LoadData()
 
 def SaveData():
