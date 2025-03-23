@@ -167,6 +167,7 @@ def handle_joymax(opcode,data):
 			else:
 				stop_wheeling()
 		close_database_connection()
+	return True
 
 def check_options_complete(magic_options):
 	for key, value in magic_options.items():
