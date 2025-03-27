@@ -5,9 +5,10 @@ import QtBind
 import urllib.request
 import os
 import sqlite3
+import json
 
 name = 'AutoWheels'
-version = 1.0
+version = 1.1
 NewestVersion = 0
 
 
@@ -15,54 +16,72 @@ gui = QtBind.init(__name__, name)
 
 lbl = QtBind.createLabel(gui,'Stop if total STR >= ',20,20)
 txt_STR_limit = QtBind.createLineEdit(gui,"1",120,17,40,20)
+lbl = QtBind.createLabel(gui,'Lines >= ',165,20)
+txt_STR_lines_limit = QtBind.createLineEdit(gui,"1",210,17,40,20)
 
 lbl = QtBind.createLabel(gui,'Stop if total INT >= ',20,50)
 txt_INT_limit = QtBind.createLineEdit(gui,"1",120,47,40,20)
+lbl = QtBind.createLabel(gui,'Lines >= ',165,50)
+txt_INT_lines_limit = QtBind.createLineEdit(gui,"1",210,47,40,20)
 
 lbl = QtBind.createLabel(gui,'Stop if total HP >= ',20,80)
 txt_HP_limit = QtBind.createLineEdit(gui,"1",120,77,40,20)
+lbl = QtBind.createLabel(gui,'Lines >= ',165,80)
+txt_HP_lines_limit = QtBind.createLineEdit(gui,"1",210,77,40,20)
 
 lbl = QtBind.createLabel(gui,'Stop if total MP >= ',20,110)
 txt_MP_limit = QtBind.createLineEdit(gui,"1",120,107,40,20)
+lbl = QtBind.createLabel(gui,'Lines >= ',165,110)
+txt_MP_lines_limit = QtBind.createLineEdit(gui,"1",210,107,40,20)
 
 lbl = QtBind.createLabel(gui,'Stop if total Durability % >= ',20,140)
 txt_DUR_limit = QtBind.createLineEdit(gui,"1",160,137,40,20)
+lbl = QtBind.createLabel(gui,'Lines >= ',205,140)
+txt_DUR_lines_limit = QtBind.createLineEdit(gui,"1",250,137,40,20)
 
 lbl = QtBind.createLabel(gui,'Stop if total Parry Rate % >= ',20,170)
 txt_ER_limit = QtBind.createLineEdit(gui,"1",170,167,40,20)
+lbl = QtBind.createLabel(gui,'Lines >= ',215,170)
+txt_ER_lines_limit = QtBind.createLineEdit(gui,"1",260,167,40,20)
 
 lbl = QtBind.createLabel(gui,'Stop if total Attack Rate % >= ',20,200)
 txt_HR_limit = QtBind.createLineEdit(gui,"1",170,197,40,20)
+lbl = QtBind.createLabel(gui,'Lines >= ',215,200)
+txt_HR_lines_limit = QtBind.createLineEdit(gui,"1",260,197,40,20)
 
 lbl = QtBind.createLabel(gui,'Stop if total Critcal >= ',20,230)
 txt_CRITICAL_limit = QtBind.createLineEdit(gui,"1",130,227,40,20)
+lbl = QtBind.createLabel(gui,'Lines >= ',175,230)
+txt_CRITICAL_lines_limit = QtBind.createLineEdit(gui,"1",220,227,40,20)
 
 lbl = QtBind.createLabel(gui,'Stop if total Block Rate >= ',20,260)
 txt_BLOCK_limit = QtBind.createLineEdit(gui,"1",150,257,40,20)
+lbl = QtBind.createLabel(gui,'Lines >= ',195,260)
+txt_BLOCK_lines_limit = QtBind.createLineEdit(gui,"1",240,257,40,20)
 
-lbl = QtBind.createLabel(gui,'Stop if total Frostbite % >= ',300,20)
-txt_FROSTBITE_limit = QtBind.createLineEdit(gui,"1",440,17,40,20)
+lbl = QtBind.createLabel(gui,'Stop if total Frostbite % >= ',320,20)
+txt_FROSTBITE_limit = QtBind.createLineEdit(gui,"1",460,17,40,20)
 
-lbl = QtBind.createLabel(gui,'Stop if total Shock % >= ',300,50)
-txt_ESHOCK_limit = QtBind.createLineEdit(gui,"1",425,47,40,20)
+lbl = QtBind.createLabel(gui,'Stop if total Shock % >= ',320,50)
+txt_ESHOCK_limit = QtBind.createLineEdit(gui,"1",445,47,40,20)
 
-lbl = QtBind.createLabel(gui,'Stop if total Burn % >= ',300,80)
-txt_BURN_limit = QtBind.createLineEdit(gui,"1",420,77,40,20)
+lbl = QtBind.createLabel(gui,'Stop if total Burn % >= ',320,80)
+txt_BURN_limit = QtBind.createLineEdit(gui,"1",440,77,40,20)
 
-lbl = QtBind.createLabel(gui,'Stop if total Poison % >= ',300,110)
-txt_POISON_limit = QtBind.createLineEdit(gui,"1",430,107,40,20)
+lbl = QtBind.createLabel(gui,'Stop if total Poison % >= ',320,110)
+txt_POISON_limit = QtBind.createLineEdit(gui,"1",450,107,40,20)
 
-lbl = QtBind.createLabel(gui,'Stop if total Zombie % >= ',300,140)
-txt_ZOMBIE_limit = QtBind.createLineEdit(gui,"1",430,137,40,20)
+lbl = QtBind.createLabel(gui,'Stop if total Zombie % >= ',320,140)
+txt_ZOMBIE_limit = QtBind.createLineEdit(gui,"1",450,137,40,20)
 
-cbxFate = QtBind.createCheckBox(gui, 'cbxFate_clicked','Use Wheel of Fate', 300, 170)
-cbxFortune = QtBind.createCheckBox(gui, 'cbxFate_clicked','Use Wheel of Fortune', 300, 200)
+cbxFate = QtBind.createCheckBox(gui, 'cbxFate_clicked','Use Wheel of Fate', 320, 170)
+cbxFortune = QtBind.createCheckBox(gui, 'cbxFate_clicked','Use Wheel of Fortune', 320, 200)
 
-lbl = QtBind.createLabel(gui,'Stop if total Lines >= ',300,230)
-txt_lines_limit = QtBind.createLineEdit(gui,"1",410,227,40,20)
+lbl = QtBind.createLabel(gui,'Stop if total Lines >= ',320,230)
+txt_lines_limit = QtBind.createLineEdit(gui,"1",430,227,40,20)
 
-lbl = QtBind.createLabel(gui,'Delay Between Wheels (ms)',300,260)
-txt_delay = QtBind.createLineEdit(gui,"5000",440,257,40,20)
+lbl = QtBind.createLabel(gui,'Delay Between Wheels (ms)',320,260)
+txt_delay = QtBind.createLineEdit(gui,"5000",460,257,40,20)
 
 lbl = QtBind.createLabel(gui,'Current Items',520,20)
 combo_items = QtBind.createCombobox(gui,520,35,200,30)
@@ -118,7 +137,7 @@ def handle_joymax(opcode,data):
 	global thread_
 	if opcode == 0xB151:
 		connect_to_database()
-		magic_options = {}
+		magic_options = []
 		QtBind.clear(gui,display)
 		index = 0
 		result = struct.unpack_from('<B', data, index)[0]
@@ -148,16 +167,14 @@ def handle_joymax(opcode,data):
 				index += 4
 				amount = struct.unpack_from('<I', data, index)[0]
 				index += 4
-				if id == 0:
+				#skip the first line
+				if x == 0:
 					continue
 				magic_option_data = get_magic_option(id)
-				QtBind.append(gui,display,f"{magic_option_data['name']}: {amount}")
+				QtBind.append(gui,display,f"{get_clean_magic_name(magic_option_data['name'])}: {amount}")
 				
 				attr = magic_option_data['name']
-				if attr in magic_options:
-					magic_options[attr] += amount
-				else:
-					magic_options[attr] = amount
+				magic_options.append({attr: amount})
 				
 			if not check_options_complete(magic_options):
 				if started:
@@ -170,82 +187,229 @@ def handle_joymax(opcode,data):
 	return True
 
 def check_options_complete(magic_options):
-	for key, value in magic_options.items():
-		if len(magic_options) >= int(QtBind.text(gui,txt_lines_limit)):
-			log(f"Plugin: Stopping due to max number of lines reached [{len(magic_options)}]")
-			return True
+	if len(magic_options) >= int(QtBind.text(gui,txt_lines_limit)):
+		log(f"Plugin: Stopping due to max number of lines reached [{len(magic_options)}]")
+		return True
+		
+	combined_options = combine_magic_options(magic_options)
+	option_occurrences = count_occurrences(magic_options)
+	
+	for key, value in combined_options.items():
 		if 'STR' in key:
 			max_value = int(QtBind.text(gui,txt_STR_limit))
 			if value >= max_value:
-				log(f"Plugin: Stopping due to STR limit reached [{value}]")
+				log(f"Plugin: Stopping due to STR value limit reached [{value}]")
 				return True
+			occurences = get_occurence_value(option_occurrences, 'STR')
+			if occurences == None:
+				continue
+			max_value = int(QtBind.text(gui,txt_STR_lines_limit))
+			if occurences >= max_value:
+				log(f"Plugin: Stopping due to STR lines limit reached [{occurences}]")
+				return True			
+			
 		if 'INT' in key:
 			max_value = int(QtBind.text(gui,txt_INT_limit))
 			if value >= max_value:
-				log(f"Plugin: Stopping due to INT limit reached [{value}]")
-				return True				
+				log(f"Plugin: Stopping due to INT value limit reached [{value}]")
+				return True	
+			occurences = get_occurence_value(option_occurrences, 'INT')
+			if occurences == None:
+				continue
+			max_value = int(QtBind.text(gui,txt_INT_lines_limit))
+			if occurences >= max_value:
+				log(f"Plugin: Stopping due to INT lines limit reached [{occurences}]")
+				return True	
+
 		if 'HP' in key:
 			max_value = int(QtBind.text(gui,txt_HP_limit))
 			if value >= max_value:
-				log(f"Plugin: Stopping due to HP limit reached [{value}]")
-				return True		
+				log(f"Plugin: Stopping due to HP value limit reached [{value}]")
+				return True	
+			occurences = get_occurence_value(option_occurrences, 'HP')
+			if occurences == None:
+				continue
+			max_value = int(QtBind.text(gui,txt_HP_lines_limit))
+			if occurences >= max_value:
+				log(f"Plugin: Stopping due to HP lines limit reached [{occurences}]")
+				return True	
+				
 		if 'MP' in key:
-			max_value = int(QtBind.text(gui,txt_STR_limit))
+			max_value = int(QtBind.text(gui,txt_MP_limit))
 			if value >= max_value:
-				log(f"Plugin: Stopping due to MP limit reached [{value}]")
-				return True				
+				log(f"Plugin: Stopping due to MP value limit reached [{value}]")
+				return True
+			occurences = get_occurence_value(option_occurrences, 'MP')
+			if occurences == None:
+				continue
+			max_value = int(QtBind.text(gui,txt_MP_lines_limit))
+			if occurences >= max_value:
+				log(f"Plugin: Stopping due to MP lines limit reached [{occurences}]")
+				return True	
+
 		if 'DUR' in key:
 			max_value = int(QtBind.text(gui,txt_DUR_limit))
 			if value >= max_value:
-				log(f"Plugin: Stopping due to Durabiliy limit reached [{value}]")
+				log(f"Plugin: Stopping due to Durabiliy value limit reached [{value}]")
 				return True
-		if 'ER' in key:
+			occurences = get_occurence_value(option_occurrences, 'DUR')
+			if occurences == None:
+				continue
+			max_value = int(QtBind.text(gui,txt_DUR_lines_limit))
+			if occurences >= max_value:
+				log(f"Plugin: Stopping due to Durability lines limit reached [{occurences}]")
+				return True	
+				
+		if '_ER' in key:
 			max_value = int(QtBind.text(gui,txt_ER_limit))
 			if value >= max_value:
-				log(f"Plugin: Stopping due to Parry Rate limit reached [{value}]")
+				log(f"Plugin: Stopping due to Parry Rate value limit reached [{value}]")
 				return True
+			occurences = get_occurence_value(option_occurrences, '_ER')
+			if occurences == None:
+				continue
+			max_value = int(QtBind.text(gui,txt_ER_lines_limit))
+			if occurences >= max_value:
+				log(f"Plugin: Stopping due to Parry Rate lines limit reached [{occurences}]")
+				return True					
+				
 		if 'HR' in key:
 			max_value = int(QtBind.text(gui,txt_HR_limit))
 			if value >= max_value:
-				log(f"Plugin: Stopping due to Attack Rate limit reached [{value}]")
+				log(f"Plugin: Stopping due to Attack Rate value limit reached [{value}]")
 				return True
+			occurences = get_occurence_value(option_occurrences, 'HR')
+			if occurences == None:
+				continue
+			max_value = int(QtBind.text(gui,txt_HR_lines_limit))
+			if occurences >= max_value:
+				log(f"Plugin: Stopping due to Attack Rate lines limit reached [{occurences}]")
+				return True					
+				
 		if 'CRITICAL' in key:
 			max_value = int(QtBind.text(gui,txt_CRITICAL_limit))
 			if value >= max_value:
-				log(f"Plugin: Stopping due to Critcal limit reached [{value}]")
+				log(f"Plugin: Stopping due to Critcal value limit reached [{value}]")
 				return True
+			occurences = get_occurence_value(option_occurrences, 'CRITICAL')
+			if occurences == None:
+				continue
+			max_value = int(QtBind.text(gui,txt_CRITICAL_lines_limit))
+			if occurences >= max_value:
+				log(f"Plugin: Stopping due to Critical lines limit reached [{occurences}]")
+				return True	
+				
 		if 'BLOCK' in key:
 			max_value = int(QtBind.text(gui,txt_BLOCK_limit))
 			if value >= max_value:
-				log(f"Plugin: Stopping due to Block limit reached [{value}]")
+				log(f"Plugin: Stopping due to Block value limit reached [{value}]")
 				return True
+			occurences = get_occurence_value(option_occurrences, 'BLOCK')
+			if occurences == None:
+				continue
+			max_value = int(QtBind.text(gui,txt_BLOCK_lines_limit))
+			if occurences >= max_value:
+				log(f"Plugin: Stopping due to Block lines limit reached [{occurences}]")
+				return True					
+				
 		if 'FROSTBITE' in key:
 			max_value = int(QtBind.text(gui,txt_FROSTBITE_limit))
 			if value >= max_value:
-				log(f"Plugin: Stopping due to Frostbite limit reached [{value}]")
+				log(f"Plugin: Stopping due to Frostbite value limit reached [{value}]")
 				return True
 		if 'ESHOCK' in key:
 			max_value = int(QtBind.text(gui,txt_ESHOCK_limit))
 			if value >= max_value:
-				log(f"Plugin: Stopping due to Shock limit reached [{value}]")
+				log(f"Plugin: Stopping due to Shock value limit reached [{value}]")
 				return True
 		if 'BURN' in key:
 			max_value = int(QtBind.text(gui,txt_BURN_limit))
 			if value >= max_value:
-				log(f"Plugin: Stopping due to Burn limit reached [{value}]")
+				log(f"Plugin: Stopping due to Burn value limit reached [{value}]")
 				return True
 		if 'POISON' in key:
 			max_value = int(QtBind.text(gui,txt_POISON_limit))
 			if value >= max_value:
-				log(f"Plugin: Stopping due to Poison limit reached [{value}]")
+				log(f"Plugin: Stopping due to Poison value limit reached [{value}]")
 				return True
 		if 'ZOMBIE' in key:
 			max_value = int(QtBind.text(gui,txt_ZOMBIE_limit))
 			if value >= max_value:
-				log(f"Plugin: Stopping due to Zombie limit reached [{value}]")
+				log(f"Plugin: Stopping due to Zombie value limit reached [{value}]")
 				return True
 	return False
 
+def combine_magic_options(magic_options):
+	combined_data = {}
+	for entry in magic_options:
+		for key, value in entry.items():
+			if key in combined_data:
+				combined_data[key] += value
+			else:
+				combined_data[key] = value	
+	return combined_data
+	
+def count_occurrences(magic_options):
+	occurrences = {}
+	for entry in magic_options:
+		for key in entry.keys():
+			occurrences[key] = occurrences.get(key, 0) + 1
+	return occurrences
+	
+def get_occurence_value(data, search_string):
+	for key, value in data.items():
+		if search_string in key:
+			return value
+	return None
+
+def get_clean_magic_name(servername):
+	if 'MATTR_ASTRAL' in servername:
+		return 'Astral'
+	if 'MATTR_BLOCKRATE' in servername:
+		return 'Block Rate'
+	if 'MATTR_CRITICAL' in servername:
+		return 'Critcal'
+	if 'MATTR_DUR' in servername:
+		return 'Durability'
+	if 'MATTR_ER' in servername:
+		return 'Parry Rate'
+	if 'MATTR_EVADE_BLOCK' in servername:
+		return 'Block'
+	if 'MATTR_EVADE_CRITICAL' in servername:
+		return 'Critical Block'
+	if 'MATTR_HP' in servername:
+		return 'HP Increase'
+	if 'MATTR_HR' in servername:
+		return 'Attack Rate'
+	if 'MATTR_INT' in servername:
+		return 'INT'
+	if 'MATTR_LUCK' in servername:
+		return 'Lucky'
+	if 'MATTR_MP' in servername:
+		return 'MP Increase'
+	if 'MATTR_REGENHPMP' in servername:
+		return 'HP/MP Regen'
+	if 'MATTR_RESIST_BURN' in servername:
+		return 'Burn Resist'
+	if 'MATTR_RESIST_CSMP' in servername:
+		return 'Combustion Resist'
+	if 'MATTR_RESIST_ESHOCK' in servername:
+		return 'Shock Resist'
+	if 'MATTR_RESIST_FEAR' in servername:
+		return 'Fear Resist'
+	if 'MATTR_RESIST_FROSTBITE' in servername:
+		return 'Frostbite Resist'
+	if 'MATTR_RESIST_POISON' in servername:
+		return 'Poison Resist'
+	if 'MATTR_RESIST_SLEEP' in servername:
+		return 'Sleep Resist'		
+	if 'MATTR_RESIST_STUN' in servername:
+		return 'Stun Resist'
+	if 'MATTR_RESIST_ZOMBIE' in servername:
+		return 'Zombie Resist'
+	if 'MATTR_STR' in servername:
+		return 'STR'
+	return servername
 
 def use_wheel_fate():
 	wheels = []
@@ -306,12 +470,33 @@ def connect_to_database():
 	global db3_connection
 	if not db3_connection:
 		bot_path = os.getcwd()
+		path = None	
+		
 		locale = get_locale()
 		if locale == 18:
 			path = f'{bot_path}/Data/iSRO.db3'
 		if locale == 56:
 			path = f'{bot_path}/Data/TRSRO.db3'
-		db3_connection = sqlite3.connect(path, check_same_thread=False)
+			
+		else:
+			with open(bot_path+"/vSRO.json","r") as f:
+				data = json.load(f)
+			server = get_character_data()['server']
+			for k in data:
+				servers = data[k]['servers']
+				if server in servers:
+					for path in os.scandir(bot_path+"/Data"):
+						if path.is_file() and path.name.endswith(".db3"):
+							db3_connection = sqlite3.connect(bot_path+"/Data/"+path.name)
+							c = db3_connection.cursor()
+							c.execute('SELECT * FROM data WHERE k="path" AND v=?',(data[k]['path'],))
+							if c.fetchone():
+								return 
+							else:
+								db3_connection.close()
+								
+		if path:
+			db3_connection = sqlite3.connect(path, check_same_thread=False)
 	
 def close_database_connection():
 	global db3_connection
