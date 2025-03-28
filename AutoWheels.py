@@ -136,54 +136,55 @@ thread_ = None
 def handle_joymax(opcode,data):
 	global thread_
 	if opcode == 0xB151:
-		connect_to_database()
-		magic_options = []
-		QtBind.clear(gui,display)
-		index = 0
-		result = struct.unpack_from('<B', data, index)[0]
-		index += 1
-		action = struct.unpack_from('<B', data, index)[0]
-		index += 1
-		is_success = struct.unpack_from('<B', data, index)[0]
-		if is_success == 1:
-			index += 2
-			#skip next byte
-			slot = struct.unpack_from('<B', data, index)[0]
+		if started:
+			connect_to_database()
+			magic_options = []
+			QtBind.clear(gui,display)
+			index = 0
+			result = struct.unpack_from('<B', data, index)[0]
 			index += 1
-			rental_type = struct.unpack_from('<I', data, index)[0]
-			index += 4
-			item_id = struct.unpack_from('<I', data, index)[0]
-			index += 4
-			plus = struct.unpack_from('<B', data, index)[0]
+			action = struct.unpack_from('<B', data, index)[0]
 			index += 1
-			attributes = struct.unpack_from('<Q', data, index)[0]
-			index += 8
-			durability = struct.unpack_from('<I', data, index)[0]
-			index += 4
-			number_of_magiclines = struct.unpack_from('<B', data, index)[0]
-			index += 1	
-			for x in range(number_of_magiclines):
-				id = struct.unpack_from('<I', data, index)[0]
+			is_success = struct.unpack_from('<B', data, index)[0]
+			if is_success == 1:
+				index += 2
+				#skip next byte
+				slot = struct.unpack_from('<B', data, index)[0]
+				index += 1
+				rental_type = struct.unpack_from('<I', data, index)[0]
 				index += 4
-				amount = struct.unpack_from('<I', data, index)[0]
+				item_id = struct.unpack_from('<I', data, index)[0]
 				index += 4
-				#skip the first line
-				if x == 0:
-					continue
-				magic_option_data = get_magic_option(id)
-				QtBind.append(gui,display,f"{get_clean_magic_name(magic_option_data['name'])}: {amount}")
-				
-				attr = magic_option_data['name']
-				magic_options.append({attr: amount})
-				
-			if not check_options_complete(magic_options):
-				if started:
-					delay = int(QtBind.text(gui,txt_delay)) / 1000
-					thread_ = Timer(delay, use_wheel_fate)
-					thread_.start()
-			else:
-				stop_wheeling()
-		close_database_connection()
+				plus = struct.unpack_from('<B', data, index)[0]
+				index += 1
+				attributes = struct.unpack_from('<Q', data, index)[0]
+				index += 8
+				durability = struct.unpack_from('<I', data, index)[0]
+				index += 4
+				number_of_magiclines = struct.unpack_from('<B', data, index)[0]
+				index += 1	
+				for x in range(number_of_magiclines):
+					id = struct.unpack_from('<I', data, index)[0]
+					index += 4
+					amount = struct.unpack_from('<I', data, index)[0]
+					index += 4
+					#skip the first line
+					if x == 0:
+						continue
+					magic_option_data = get_magic_option(id)
+					QtBind.append(gui,display,f"{get_clean_magic_name(magic_option_data['name'])}: {amount}")
+					
+					attr = magic_option_data['name']
+					magic_options.append({attr: amount})
+					
+				if not check_options_complete(magic_options):
+					if started:
+						delay = int(QtBind.text(gui,txt_delay)) / 1000
+						thread_ = Timer(delay, use_wheel_fate)
+						thread_.start()
+				else:
+					stop_wheeling()
+			close_database_connection()
 	return True
 
 def check_options_complete(magic_options):
@@ -239,7 +240,7 @@ def check_options_complete(magic_options):
 			if value >= max_value:
 				log(f"Plugin: Stopping due to MP value limit reached [{value}]")
 				return True
-			occurences = get_occurence_value(option_occurrences, 'MP')
+			occurences = get_occurence_value(option_occurrences, '_MP')
 			if occurences == None:
 				continue
 			max_value = int(QtBind.text(gui,txt_MP_lines_limit))
