@@ -9,7 +9,7 @@ import random
 from operator import add, sub
 
 name = 'Battle of Infinity'
-version = 1.8
+version = 1.9
 NewestVersion = 0
 path = get_config_dir() + name + "\\"
 
@@ -53,8 +53,8 @@ cbxFinished = QtBind.createCheckBox(gui, 'cbxFinished_clicked','Return and start
 lbl = QtBind.createLabel(gui,'Training profile ',430,130)
 txtFinishedProfile = QtBind.createLineEdit(gui,"",520,128,90,20)
 cbxTerminate = QtBind.createCheckBox(gui, 'cbxTerminate_clicked','Terminate Bot when finished', 400, 150)
-cbxUseHighSkills = QtBind.createCheckBox(gui, 'cbxUseHighSkills','Always Use Highest Skills', 400, 180)
-cbxRandomTarget = QtBind.createCheckBox(gui, 'cbxRandomTarget','Select Random Target', 400, 210)
+cbxUseHighSkills = QtBind.createCheckBox(gui, 'cbxUseHighSkills_','Always Use Highest Skills', 400, 180)
+cbxRandomTarget = QtBind.createCheckBox(gui, 'cbxRandomTarget_','Select Random Target', 400, 210)
 
 lbl = QtBind.createLabel(gui,'Current Stage: ',10,250)
 lblStage = QtBind.createLabel(gui,'0',85,250)
@@ -375,6 +375,8 @@ def UseSkill():
 		for skill in CastSkills:
 			if skill not in ActiveSkills:
 				MobID = GetMobID()
+				if MobID == None:
+					return
 				SelectedMob = MobID
 				if MobID > 0:
 					AttackAttempts += 1
@@ -416,7 +418,7 @@ def GetMobID():
 		if QtBind.isChecked(gui,cbxRandomTarget):
 			if SelectedMob in MobIDs:
 				return SelectedMob
-			return random.choice(MobIDs)
+			return random.choice(MobIDs) if MobIDs else None
 			
 	elif not AtAttackArea():
 		#move back to center
@@ -425,7 +427,7 @@ def GetMobID():
 			move_to(14737.0, 2593.0, 0.0)
 		else:
 			MovetoRandomPoint()
-		return 0
+	return 0
 
 def MovetoRandomPoint():
 	global MoveAttempts
