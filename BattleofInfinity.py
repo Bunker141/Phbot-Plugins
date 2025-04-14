@@ -9,7 +9,7 @@ import random
 from operator import add, sub
 
 name = 'Battle of Infinity'
-version = 1.9
+version = 1.10
 NewestVersion = 0
 path = get_config_dir() + name + "\\"
 
@@ -32,7 +32,7 @@ AttackAttempts = 0
 SoloCount = 0
 PartyCount = 0
 
-CastSkill = []
+CastSkills = []
 ActiveSkills = []
 MorphID = 0
 
@@ -494,9 +494,7 @@ def party_count():
 	if pt:
 		for key, char in pt.items():
 			count += 1
-		return count - 1
-		
-
+	return count - 1
 
 def CheckforParty():
 	global WaitingforParty
