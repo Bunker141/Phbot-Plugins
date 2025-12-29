@@ -9,7 +9,7 @@ import random
 from operator import add, sub
 
 name = 'Battle of Infinity'
-version = 1.10
+version = 1.11
 NewestVersion = 0
 path = get_config_dir() + name + "\\"
 
@@ -223,15 +223,17 @@ def button_start():
 def Register():
 	if OptionsSelected():
 		npcs = get_npcs()
-		for key, npc in npcs.items():
-			if npc['servername'] == r"NPC_BATTLE_ARENA_MANAGER":
-				type = GetBOIType()
-				packet = struct.pack('<I', key)
-				packet += b'\x02'
-				packet += struct.pack('<I', type)
-				inject_joymax(0x705A,packet,False)
-				return
-		log('Plugin: You are not near the Arena Manager')
+		if npcs:
+			for key, npc in npcs.items():
+				if npc['servername'] == r"NPC_BATTLE_ARENA_MANAGER":
+					type = GetBOIType()
+					packet = struct.pack('<I', key)
+					inject_joymax(0x7045,packet,False)
+					packet += b'\x02'
+					packet += struct.pack('<I', type)
+					Timer(1.0, inject_joymax, [0x705A,packet,False]).start()
+					return
+			log('Plugin: You are not near the Arena Manager')
 		
 
 def BeginBattle():
@@ -383,7 +385,8 @@ def UseSkill():
 					if AttackAttempts >= 3:
 						MovetoRandomPoint()
 						AttackAttempts = 0
-						Backup.cancel()
+						if Backup:
+							Backup.cancel()
 					AttackMob(skill,MobID)
 					#skill cooldown minus alittle
 					SkillDelay = 3000
@@ -793,7 +796,8 @@ def handle_joymax(opcode, data):
 			SelfID = get_character_data()['player_id']
 			if AttackerID == SelfID:
 				ActiveSkills.append(Skill)
-				Backup.cancel()
+				if Backup:
+					Backup.cancel()
 				AttackAttempts = 0
 				CoolDown = 5
 				Timer(CoolDown,RemoveSkill,[Skill]).start()
